@@ -10,8 +10,8 @@ class PelangganController extends Controller
 {
     public function index()
     {
-        $data = Pelanggan::all();
-        return view('pelanggans.index', compact('data'));
+        $pelanggans = Pelanggan::all();
+        return view('pelanggans.index', compact('pelanggans'));
     }
 
     public function create()
@@ -19,38 +19,75 @@ class PelangganController extends Controller
         return view('pelanggans.create');
     }
 
-    public function store(Request $r)
+    public function store(Request $request)
     {
-        $data = $r->all();
-        $data['password'] = Hash::make($r->password);
+        $validated = $request->validate([
+            'nama_pelanggan' => 'required|string|max:255',
+            'email' => 'required|email|unique:pelanggans,email',
+            'telepon' => 'required|string|max:15',
+            'tgl_lahir' => 'nullable|date',
+            'alamat1' => 'required|string',
+            'alamat2' => 'nullable|string',
+            'alamat3' => 'nullable|string',
+            'kartu_id' => 'nullable|string|max:50',
+            'password' => 'nullable|string|min:8',
+        ], [
+            'nama_pelanggan.required' => 'Nama pelanggan harus diisi',
+            'email.required' => 'Email harus diisi',
+            'email.unique' => 'Email sudah terdaftar',
+            'telepon.required' => 'Nomor telepon harus diisi',
+            'alamat1.required' => 'Alamat harus diisi',
+        ]);
 
-        Pelanggan::create($data);
-        return redirect('/pelanggans');
-    }
-
-    public function edit($id)
-    {
-        $data = Pelanggan::find($id);
-        return view('pelanggans.edit', compact('data'));
-    }
-
-    public function update(Request $r, $id)
-    {
-        $data = $r->all();
-
-        if ($r->password) {
-            $data['password'] = Hash::make($r->password);
+        // Handle password
+        if ($request->filled('password')) {
+            $validated['password'] = Hash::make($request->password);
         } else {
-            unset($data['password']);
+            $validated['password'] = Hash::make('pelanggan123');
         }
 
-        Pelanggan::find($id)->update($data);
-        return redirect('/pelanggans');
+        Pelanggan::create($validated);
+
+        return redirect()->route('pelanggans.index')
+            ->with('success', 'Pelanggan berhasil ditambahkan!');
     }
 
-    public function destroy($id)
+    public function edit(Pelanggan $pelanggan)
     {
-        Pelanggan::destroy($id);
-        return back();
+        return view('pelanggans.edit', compact('pelanggan'));
+    }
+
+    public function update(Request $request, Pelanggan $pelanggan)
+    {
+        $validated = $request->validate([
+            'nama_pelanggan' => 'required|string|max:255',
+            'email' => 'required|email|unique:pelanggans,email,' . $pelanggan->id,
+            'telepon' => 'required|string|max:15',
+            'tgl_lahir' => 'nullable|date',
+            'alamat1' => 'required|string',
+            'alamat2' => 'nullable|string',
+            'alamat3' => 'nullable|string',
+            'kartu_id' => 'nullable|string|max:50',
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        // Handle password
+        if ($request->filled('password')) {
+            $validated['password'] = Hash::make($request->password);
+        } else {
+            unset($validated['password']);
+        }
+
+        $pelanggan->update($validated);
+
+        return redirect()->route('pelanggans.index')
+            ->with('success', 'Pelanggan berhasil diupdate!');
+    }
+
+    public function destroy(Pelanggan $pelanggan)
+    {
+        $pelanggan->delete();
+        return redirect()->route('pelanggans.index')
+            ->with('success', 'Pelanggan berhasil dihapus!');
     }
 }

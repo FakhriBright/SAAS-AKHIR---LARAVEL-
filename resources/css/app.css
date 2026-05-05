@@ -1,3 +1,107 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+:root {
+    --primary: #e85d04;
+    --primary-dark: #dc2f02;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --radius: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --transition: all .3s ease;
+}
+
+/* BASE */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f6fa;
+}
+
+/* CARD */
+.card-modern {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.card-modern:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* BUTTON */
+.btn-modern {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+}
+
+/* TABLE */
+.table-modern {
+    background: #fff;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+/* STATUS TRACKER */
+.tracker {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 40px 0;
+}
+
+.tracker::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 10%;
+    right: 10%;
+    height: 4px;
+    background: #ddd;
+}
+
+.tracker::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 10%;
+    width: 50%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), orange);
+}
+
+.step {
+    text-align: center;
+    z-index: 2;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    background: #ddd;
+    border-radius: 50%;
+    margin: auto;
+}
+
+.step.active .step-circle {
+    background: var(--primary);
+}
+
+/* ANIMATION */
+.fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: .6s;
+}
+
+.fade-up.show {
+    opacity: 1;
+    transform: translateY(0);
+}

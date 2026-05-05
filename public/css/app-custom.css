@@ -1,0 +1,365 @@
+/* ========================================
+   CATERINGKU - STYLESHEET
+   Clean & Organized Version
+======================================== */
+
+/* ──────────────────────────────────────
+   1. ROOT VARIABLES
+────────────────────────────────────── */
+:root {
+    /* Colors */
+    --primary:        #e85d04;
+    --primary-light:  #ff7b00;
+    --primary-dark:   #dc2f02;
+
+    --bg:             #f6f7fb;
+    --bg-white:       #ffffff;
+
+    --text:           #2d2d2d;
+    --text-muted:     #888888;
+
+    --border:         #eeeeee;
+
+    /* UI */
+    --radius:         16px;
+    --radius-sm:      8px;
+    --shadow:         0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg:      0 10px 30px rgba(0, 0, 0, 0.15);
+    --transition:     0.3s ease;
+}
+
+/* ──────────────────────────────────────
+   2. BASE RESET
+────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ──────────────────────────────────────
+   3. NAVBAR
+────────────────────────────────────── */
+.navbar {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-brand {
+    color: var(--primary) !important;
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-link {
+    color: #555 !important;
+    font-weight: 500;
+    padding: 8px 12px;
+    transition: color var(--transition);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary) !important;
+}
+
+/* ──────────────────────────────────────
+   4. LAYOUT UTILITIES
+────────────────────────────────────── */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.paket-wrapper {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.section-title h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.section-title p {
+    color: var(--text-muted);
+}
+
+/* ──────────────────────────────────────
+   5. CARD COMPONENT (Modern)
+────────────────────────────────────── */
+.card-modern {
+    position: relative; /* ✅ FIX: Required for ::after pseudo-element */
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform var(--transition), box-shadow var(--transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-modern:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Shine effect on hover */
+.card-modern::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 100%);
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.card-modern:hover::after {
+    opacity: 1;
+}
+
+/* Card Header (Gradient Top) */
+.card-header-modern {
+    height: 140px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    position: relative;
+}
+
+.card-header-modern .badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Card Body */
+.card-body-modern {
+    padding: 20px;
+    flex: 1;
+}
+
+.card-body-modern h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.card-body-modern p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 6px 0;
+}
+
+.card-body-modern .price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 16px 0 0;
+}
+
+.card-body-modern .price small {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+/* Card Footer */
+.card-footer-modern {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ──────────────────────────────────────
+   6. BUTTONS
+────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(232, 93, 4, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.btn-outline:hover {
+    background: rgba(232, 93, 4, 0.08);
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+/* ──────────────────────────────────────
+   7. FORMS
+────────────────────────────────────── */
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+/* ──────────────────────────────────────
+   8. ALERTS
+────────────────────────────────────── */
+.alert {
+    padding: 14px 18px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+/* ──────────────────────────────────────
+   9. RESPONSIVE
+────────────────────────────────────── */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .paket-wrapper {
+        padding: 0 15px;
+    }
+
+    .card-footer-modern {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-sm {
+        width: 100%;
+    }
+
+    .section-title h2 {
+        font-size: 1.3rem;
+    }
+}
+
+/* ──────────────────────────────────────
+   10. ANIMATIONS (Optional)
+────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-up {
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+.fade-up:nth-child(1) { animation-delay: 0.1s; }
+.fade-up:nth-child(2) { animation-delay: 0.2s; }
+.fade-up:nth-child(3) { animation-delay: 0.3s; }

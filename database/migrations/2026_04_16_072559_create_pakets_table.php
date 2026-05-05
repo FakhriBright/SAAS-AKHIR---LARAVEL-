@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('pakets', function (Blueprint $table) {
             $table->id();
             $table->string('nama_paket');
-            $table->string('jenis');
+            $table->text('deskripsi')->nullable();  // ✅ PASTIKAN INI ADA
+            $table->decimal('harga', 15, 2);         // ✅ Format harga yang benar
+            $table->integer('jumlah_porsi');         // ✅ Nama kolom sesuai
             $table->string('kategori');
-            $table->integer('jumlah_pax');
-            $table->integer('harga_paket');
             $table->timestamps();
         });
     }

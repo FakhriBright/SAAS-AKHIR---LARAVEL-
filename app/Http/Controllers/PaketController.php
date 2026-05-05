@@ -7,38 +7,92 @@ use Illuminate\Http\Request;
 
 class PaketController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $data = Paket::all();
-        return view('pakets.index', compact('data'));
+        $pakets = Paket::all();
+        return view('pakets.index', compact('pakets'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         return view('pakets.create');
     }
 
-    public function store(Request $r)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        Paket::create($r->all());
-        return redirect('/pakets');
+        $validated = $request->validate([
+            'nama_paket' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'harga' => 'required|numeric|min:0',
+            'jumlah_porsi' => 'required|integer|min:1',
+            'kategori' => 'required|string|max:50',
+        ], [
+            'nama_paket.required' => 'Nama paket harus diisi',
+            'harga.required' => 'Harga harus diisi',
+            'harga.numeric' => 'Harga harus berupa angka',
+            'harga.min' => 'Harga tidak boleh negatif',
+            'jumlah_porsi.required' => 'Jumlah porsi harus diisi',
+            'jumlah_porsi.integer' => 'Jumlah porsi harus angka',
+            'kategori.required' => 'Kategori harus dipilih',
+        ]);
+
+        Paket::create($validated);
+
+        return redirect()->route('pakets.index')
+            ->with('success', 'Paket berhasil ditambahkan!');
     }
 
-    public function edit($id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(Paket $paket)
     {
-        $data = Paket::find($id);
-        return view('pakets.edit', compact('data'));
+        return view('pakets.show', compact('paket'));
     }
 
-    public function update(Request $r, $id)
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Paket $paket)  // ✅ METHOD INI YANG MISSING!
     {
-        Paket::find($id)->update($r->all());
-        return redirect('/pakets');
+        return view('pakets.edit', compact('paket'));
     }
 
-    public function destroy($id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Paket $paket)  // ✅ METHOD INI JUGA!
     {
-        Paket::destroy($id);
-        return back();
+        $validated = $request->validate([
+            'nama_paket' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'harga' => 'required|numeric|min:0',
+            'jumlah_porsi' => 'required|integer|min:1',
+            'kategori' => 'required|string|max:50',
+        ]);
+
+        $paket->update($validated);
+
+        return redirect()->route('pakets.index')
+            ->with('success', 'Paket berhasil diupdate!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Paket $paket)
+    {
+        $paket->delete();
+        return redirect()->route('pakets.index')
+            ->with('success', 'Paket berhasil dihapus!');
     }
 }

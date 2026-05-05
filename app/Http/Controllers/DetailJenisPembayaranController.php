@@ -3,63 +3,83 @@
 namespace App\Http\Controllers;
 
 use App\Models\DetailJenisPembayaran;
+use App\Models\JenisPembayaran;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DetailJenisPembayaranController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $details = DetailJenisPembayaran::with('jenisPembayaran')->latest()->get();
+        return view('detail-jenis-pembayaran.index', compact('details'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $jenisPembayarans = JenisPembayaran::all();
+        return view('detail-jenis-pembayaran.create', compact('jenisPembayarans'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'id_jenis_pembayaran' => 'required|exists:jenis_pembayarans,id',
+            'no_rek' => 'nullable|string|max:30',
+            'tempat_bayar' => 'nullable|string|max:100',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // Handle upload logo
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        DetailJenisPembayaran::create($validated);
+
+        return redirect()->route('detail-jenis-pembayaran.index')
+            ->with('success', 'Detail pembayaran berhasil ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(DetailJenisPembayaran $detailJenisPembayaran)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(DetailJenisPembayaran $detailJenisPembayaran)
     {
-        //
+        $jenisPembayarans = JenisPembayaran::all();
+        return view('detail-jenis-pembayaran.edit', compact('detailJenisPembayaran', 'jenisPembayarans'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, DetailJenisPembayaran $detailJenisPembayaran)
     {
-        //
+        $validated = $request->validate([
+            'id_jenis_pembayaran' => 'required|exists:jenis_pembayarans,id',
+            'no_rek' => 'nullable|string|max:30',
+            'tempat_bayar' => 'nullable|string|max:100',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // Handle upload logo baru
+        if ($request->hasFile('logo')) {
+            // Hapus logo lama jika ada
+            if ($detailJenisPembayaran->logo) {
+                Storage::disk('public')->delete($detailJenisPembayaran->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $detailJenisPembayaran->update($validated);
+
+        return redirect()->route('detail-jenis-pembayaran.index')
+            ->with('success', 'Detail pembayaran berhasil diupdate!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(DetailJenisPembayaran $detailJenisPembayaran)
     {
-        //
+        // Hapus file logo jika ada
+        if ($detailJenisPembayaran->logo) {
+            Storage::disk('public')->delete($detailJenisPembayaran->logo);
+        }
+
+        $detailJenisPembayaran->delete();
+        return redirect()->route('detail-jenis-pembayaran.index')
+            ->with('success', 'Detail pembayaran berhasil dihapus!');
     }
 }

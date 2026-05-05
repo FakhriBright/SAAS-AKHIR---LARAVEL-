@@ -12,7 +12,8 @@ class JenisPembayaranController extends Controller
      */
     public function index()
     {
-        //
+        $jenisPembayarans = JenisPembayaran::with('detailJenisPembayarans')->latest()->get();
+        return view('jenis-pembayaran.index', compact('jenisPembayarans'));
     }
 
     /**
@@ -20,7 +21,9 @@ class JenisPembayaranController extends Controller
      */
     public function create()
     {
-        //
+        // ✅ FIX: Ambil semua data dan kirim ke view
+        $jenisPembayarans = JenisPembayaran::all();
+        return view('jenis-pembayaran.create', compact('jenisPembayarans'));
     }
 
     /**
@@ -28,7 +31,14 @@ class JenisPembayaranController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'metode_pembayaran' => 'required|string|max:50|unique:jenis_pembayarans,metode_pembayaran',
+        ]);
+
+        JenisPembayaran::create($validated);
+
+        return redirect()->route('jenis-pembayaran.index')
+            ->with('success', 'Jenis pembayaran berhasil ditambahkan!');
     }
 
     /**
@@ -36,7 +46,7 @@ class JenisPembayaranController extends Controller
      */
     public function show(JenisPembayaran $jenisPembayaran)
     {
-        //
+        return view('jenis-pembayaran.show', compact('jenisPembayaran'));
     }
 
     /**
@@ -44,7 +54,7 @@ class JenisPembayaranController extends Controller
      */
     public function edit(JenisPembayaran $jenisPembayaran)
     {
-        //
+        return view('jenis-pembayaran.edit', compact('jenisPembayaran'));
     }
 
     /**
@@ -52,7 +62,14 @@ class JenisPembayaranController extends Controller
      */
     public function update(Request $request, JenisPembayaran $jenisPembayaran)
     {
-        //
+        $validated = $request->validate([
+            'metode_pembayaran' => 'required|string|max:50|unique:jenis_pembayarans,metode_pembayaran,' . $jenisPembayaran->id,
+        ]);
+
+        $jenisPembayaran->update($validated);
+
+        return redirect()->route('jenis-pembayaran.index')
+            ->with('success', 'Jenis pembayaran berhasil diupdate!');
     }
 
     /**
@@ -60,6 +77,8 @@ class JenisPembayaranController extends Controller
      */
     public function destroy(JenisPembayaran $jenisPembayaran)
     {
-        //
+        $jenisPembayaran->delete();
+        return redirect()->route('jenis-pembayaran.index')
+            ->with('success', 'Jenis pembayaran berhasil dihapus!');
     }
 }
