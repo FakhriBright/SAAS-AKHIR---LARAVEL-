@@ -20,6 +20,7 @@ class Pelanggan extends Authenticatable
 
     public $timestamps = true;
 
+    // ✅ MASS ASSIGNMENT
     protected $fillable = [
         'nama_pelanggan',
         'email',
@@ -33,15 +34,22 @@ class Pelanggan extends Authenticatable
         'tgl_lahir',
     ];
 
+    // ✅ HIDDEN
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
+    // ✅ CASTS - password harus 'hashed'
     protected $casts = [
         'password' => 'hashed',
+        'email_verified_at' => 'datetime',
         'tgl_lahir' => 'date',
     ];
 
+    /**
+     * Relasi ke Pemesanan
+     */
     public function pemesanans(): HasMany
     {
         return $this->hasMany(Pemesanan::class, 'id_pelanggan');

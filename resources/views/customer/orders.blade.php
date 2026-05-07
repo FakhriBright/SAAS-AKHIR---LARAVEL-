@@ -32,6 +32,7 @@
                         <option value="Sedang Diproses">Sedang Diproses</option>
                         <option value="Menunggu Kurir">Menunggu Kurir</option>
                         <option value="Selesai">Selesai</option>
+                        <option value="Dibatalkan">Dibatalkan</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -47,7 +48,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="ordersTable">
+                <table class="table table-hover align-middle mb-0 datatable" id="ordersTable">
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">NO. RESI</th>
@@ -62,9 +63,7 @@
                     <tbody>
                         @forelse($orders as $order)
                         <tr class="order-row" data-status="{{ $order->status_pesan }}">
-                            <td class="ps-4">
-                                <span class="fw-bold">{{ $order->no_resi }}</span>
-                            </td>
+                            <td class="ps-4 fw-bold">{{ $order->no_resi }}</td>
                             <td>{{ $order->tgl_pesan->format('d/m/Y') }}</td>
                             <td>
                                 @foreach($order->detailPemesanans->take(2) as $detail)
@@ -89,16 +88,28 @@
                                     <span class="badge bg-secondary">Menunggu Kurir</span>
                                 @elseif($order->status_pesan == 'Selesai')
                                     <span class="badge bg-success">Selesai</span>
+                                @elseif($order->status_pesan == 'Dibatalkan')
+                                    <span class="badge bg-danger">Dibatalkan</span>
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
-                                @if($order && $order->id)
-                                <a href="{{ route('customer.order.detail', $order->id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> Detail
-                                </a>
-                                @else
-                                <span class="text-muted small">-</span>
-                                @endif
+                                <div class="d-flex gap-1 justify-content-end">
+                                    {{-- Tombol Detail --}}
+                                    <a href="{{ route('customer.order.detail', $order->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
+                                        <i class="bi bi-eye"></i> Detail
+                                    </a>
+
+                                    {{-- Tombol Batal - Hanya muncul jika status "Menunggu Konfirmasi" --}}
+                                    @if($order->status_pesan == 'Menunggu Konfirmasi')
+                                    <form action="{{ route('customer.order.cancel', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Batalkan Pesanan">
+                                            <i class="bi bi-x-circle"></i> Batal
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -117,6 +128,7 @@
             </div>
         </div>
 
+        {{-- Pagination --}}
         @if($orders->hasPages())
         <div class="card-footer bg-white border-0 py-3">
             {{ $orders->links('pagination::bootstrap-5') }}
@@ -128,8 +140,8 @@
 
 @push('scripts')
 <script>
-    // Custom search & filter
-    document.getElementById('searchOrder').addEventListener('keyup', function() {
+    // Search filter
+    document.getElementById('searchOrder')?.addEventListener('keyup', function() {
         let value = this.value.toLowerCase();
         document.querySelectorAll('.order-row').forEach(row => {
             let text = row.textContent.toLowerCase();
@@ -137,7 +149,8 @@
         });
     });
 
-    document.getElementById('filterStatus').addEventListener('change', function() {
+    // Status filter
+    document.getElementById('filterStatus')?.addEventListener('change', function() {
         let status = this.value;
         document.querySelectorAll('.order-row').forEach(row => {
             if (status === '' || row.dataset.status === status) {

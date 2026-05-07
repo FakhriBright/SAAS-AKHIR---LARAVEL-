@@ -5,17 +5,15 @@
 @section('content')
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white py-3">
                     <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Buat Pesanan Catering</h5>
                 </div>
                 <div class="card-body p-4">
-                    {{-- ✅ TAMPILKAN ERROR VALIDASI DI ATAS FORM --}}
                     @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show mb-4">
-                        <h6 class="alert-heading fw-bold">⚠️ Terjadi Kesalahan:</h6>
-                        <ul class="mb-0 ps-3">
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <ul class="mb-0">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -27,13 +25,24 @@
                     <form action="{{ route('customer.order.store') }}" method="POST" id="orderForm">
                         @csrf
 
-                        {{-- Pilih Paket --}}
+                        {{-- Tanggal Pesan --}}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
+                            <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror"
+                                   value="{{ old('tgl_pesan', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required>
+                            @error('tgl_pesan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Detail Paket --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Pilih Paket <span class="text-danger">*</span></label>
                             <div id="paket-container">
                                 <div class="paket-item border rounded p-3 mb-3">
                                     <div class="row g-3">
                                         <div class="col-md-8">
+                                            <label class="form-label small">Paket</label>
                                             <select name="paket_id[]" class="form-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 @foreach($pakets as $paket)
@@ -44,7 +53,15 @@
                                             </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" min="1" value="1" required>
+                                            <label class="form-label small">Jumlah <span class="text-danger">*</span></label>
+                                            {{-- 🔥 NAME="jumlah[]" DENGAN [] AGAR TERKIRIM SEBAGAI ARRAY --}}
+                                            <input type="number"
+                                                   name="jumlah[]"
+                                                   class="form-control"
+                                                   placeholder="Jumlah"
+                                                   min="1"
+                                                   value="1"
+                                                   required>
                                         </div>
                                     </div>
                                 </div>
@@ -54,16 +71,10 @@
                             </button>
                         </div>
 
-                        {{-- Tanggal Pesan --}}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
-                            <input type="date" name="tgl_pesan" class="form-control" value="{{ old('tgl_pesan', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required>
-                        </div>
-
                         {{-- Metode Pembayaran --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Metode Pembayaran <span class="text-danger">*</span></label>
-                            <select name="id_jenis_bayar" id="metode-bayar" class="form-select" required>
+                            <select name="id_jenis_bayar" id="metode-bayar" class="form-select @error('id_jenis_bayar') is-invalid @enderror" required>
                                 <option value="">-- Pilih Metode --</option>
                                 @foreach($jenisPembayarans as $jp)
                                 <option value="{{ $jp->id }}" {{ old('id_jenis_bayar') == $jp->id ? 'selected' : '' }}>
@@ -71,6 +82,9 @@
                                 </option>
                                 @endforeach
                             </select>
+                            @error('id_jenis_bayar')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- No. Rekening (Muncul jika Transfer) --}}
@@ -83,7 +97,10 @@
                         {{-- Catatan --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Catatan (Opsional)</label>
-                            <textarea name="catatan" class="form-control" rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi...">{{ old('catatan') }}</textarea>
+                            <textarea name="catatan" class="form-control @error('catatan') is-invalid @enderror" rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi...">{{ old('catatan') }}</textarea>
+                            @error('catatan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- Total Preview --}}
@@ -123,6 +140,7 @@
         newItem.innerHTML = `
             <div class="row g-3">
                 <div class="col-md-8">
+                    <label class="form-label small">Paket</label>
                     <select name="paket_id[]" class="form-select" required>
                         <option value="">-- Pilih Paket --</option>
                         @foreach($pakets as $paket)
@@ -130,11 +148,10 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4 d-flex gap-2">
+                <div class="col-md-4">
+                    <label class="form-label small">Jumlah *</label>
+                    {{-- 🔥 NAME="jumlah[]" WAJIB! --}}
                     <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" min="1" value="1" required>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.paket-item').remove(); calculateTotal();">
-                        <i class="bi bi-trash"></i>
-                    </button>
                 </div>
             </div>
         `;
@@ -145,15 +162,20 @@
     function calculateTotal() {
         let total = 0;
         document.querySelectorAll('select[name="paket_id[]"]').forEach((select, i) => {
-            const harga = parseInt(select.options[select.selectedIndex]?.dataset.harga) || 0;
-            const jumlah = parseInt(document.querySelectorAll('input[name="jumlah[]"]')[i]?.value) || 0;
+            const option = select.options[select.selectedIndex];
+            const harga = parseInt(option?.dataset.harga) || 0;
+            const jumlahInputs = document.querySelectorAll('input[name="jumlah[]"]');
+            const jumlah = parseInt(jumlahInputs[i]?.value) || 0;
             total += harga * jumlah;
         });
         document.getElementById('total-preview').textContent = 'Rp ' + total.toLocaleString('id-ID');
     }
 
-    document.addEventListener('change', e => {
-        if (e.target.name === 'paket_id[]' || e.target.name === 'jumlah[]') calculateTotal();
+    // Auto calculate on change
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'paket_id[]' || e.target.name === 'jumlah[]') {
+            calculateTotal();
+        }
     });
 
     // Loading state saat submit
@@ -161,6 +183,11 @@
         const btn = document.getElementById('btn-submit');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+    });
+
+    // Init
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotal();
     });
 </script>
 @endpush

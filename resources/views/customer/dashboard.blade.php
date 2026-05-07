@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="fw-bold mb-1">Selamat Datang, {{ Auth::user()->name }}! 👋</h2>
+                    <h2 class="fw-bold mb-1">Selamat Datang, {{ Auth::guard('pelanggan')->user()->nama_pelanggan ?? 'Pelanggan' }}! 👋</h2>
                     <p class="text-muted mb-0">Kelola pesanan catering Anda dengan mudah</p>
                 </div>
                 <a href="{{ route('customer.order.create') }}" class="btn btn-primary">
@@ -30,7 +30,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Total Pesanan</p>
-                            <h3 class="fw-bold mb-0">{{ $totalPesanan }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $totalPesanan ?? 0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Pesanan Aktif</p>
-                            <h3 class="fw-bold mb-0">{{ $pesananAktif }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $pesananAktif ?? 0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Total Belanja</p>
-                            <h3 class="fw-bold mb-0">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
+                            <h3 class="fw-bold mb-0">Rp {{ number_format($totalBelanja ?? 0, 0, ',', '.') }}</h3>
                         </div>
                     </div>
                 </div>
@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    {{-- Profile Info --}}
+    {{-- Profile Info - ✅ PAKAI $pelangganData (Sesuai Controller) --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card border-0 shadow-sm">
@@ -81,22 +81,23 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Nama Lengkap:</strong></p>
-                            <p class="text-muted">{{ $pelanggan->nama_pelanggan }}</p>
+                            {{-- ✅ PAKAI $pelangganData BUKAN $pelanggan --}}
+                            <p class="text-muted">{{ $pelangganData->nama_pelanggan ?? '-' }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Email:</strong></p>
-                            <p class="text-muted">{{ $pelanggan->email }}</p>
+                            <p class="text-muted">{{ $pelangganData->email ?? '-' }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Nomor Telepon:</strong></p>
-                            <p class="text-muted">{{ $pelanggan->telepon }}</p>
+                            <p class="text-muted">{{ $pelangganData->telepon ?? '-' }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Alamat:</strong></p>
                             <p class="text-muted">
-                                {{ $pelanggan->alamat1 }}
-                                @if($pelanggan->alamat2), {{ $pelanggan->alamat2 }}@endif
-                                @if($pelanggan->alamat3), {{ $pelanggan->alamat3 }}@endif
+                                {{ $pelangganData->alamat1 ?? '-' }}
+                                @if($pelangganData->alamat2), {{ $pelangganData->alamat2 }}@endif
+                                @if($pelangganData->alamat3), {{ $pelangganData->alamat3 }}@endif
                             </p>
                         </div>
                     </div>
@@ -128,10 +129,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($recentOrders as $order)
+                                @forelse($recentOrders ?? [] as $order)
                                 <tr>
                                     <td class="ps-4 fw-bold">{{ $order->no_resi }}</td>
-                                    <td>{{ $order->tgl_pesan->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($order->tgl_pesan)->format('d/m/Y') }}</td>
                                     <td class="fw-bold text-primary">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</td>
                                     <td>
                                         @if($order->status_pesan == 'Menunggu Konfirmasi')
@@ -142,6 +143,8 @@
                                             <span class="badge bg-secondary">Menunggu Kurir</span>
                                         @elseif($order->status_pesan == 'Selesai')
                                             <span class="badge bg-success">Selesai</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ $order->status_pesan }}</span>
                                         @endif
                                     </td>
                                     <td class="pe-4 text-end">

@@ -7,7 +7,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="fw-bold mb-1">Selamat Datang, <?php echo e(Auth::user()->name); ?>! 👋</h2>
+                    <h2 class="fw-bold mb-1">Selamat Datang, <?php echo e(Auth::guard('pelanggan')->user()->nama_pelanggan ?? 'Pelanggan'); ?>! 👋</h2>
                     <p class="text-muted mb-0">Kelola pesanan catering Anda dengan mudah</p>
                 </div>
                 <a href="<?php echo e(route('customer.order.create')); ?>" class="btn btn-primary">
@@ -28,7 +28,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Total Pesanan</p>
-                            <h3 class="fw-bold mb-0"><?php echo e($totalPesanan); ?></h3>
+                            <h3 class="fw-bold mb-0"><?php echo e($totalPesanan ?? 0); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Pesanan Aktif</p>
-                            <h3 class="fw-bold mb-0"><?php echo e($pesananAktif); ?></h3>
+                            <h3 class="fw-bold mb-0"><?php echo e($pesananAktif ?? 0); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Total Belanja</p>
-                            <h3 class="fw-bold mb-0">Rp <?php echo e(number_format($totalBelanja, 0, ',', '.')); ?></h3>
+                            <h3 class="fw-bold mb-0">Rp <?php echo e(number_format($totalBelanja ?? 0, 0, ',', '.')); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -79,23 +79,24 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Nama Lengkap:</strong></p>
-                            <p class="text-muted"><?php echo e($pelanggan->nama_pelanggan); ?></p>
+                            
+                            <p class="text-muted"><?php echo e($pelangganData->nama_pelanggan ?? '-'); ?></p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Email:</strong></p>
-                            <p class="text-muted"><?php echo e($pelanggan->email); ?></p>
+                            <p class="text-muted"><?php echo e($pelangganData->email ?? '-'); ?></p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Nomor Telepon:</strong></p>
-                            <p class="text-muted"><?php echo e($pelanggan->telepon); ?></p>
+                            <p class="text-muted"><?php echo e($pelangganData->telepon ?? '-'); ?></p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <p class="mb-1"><strong>Alamat:</strong></p>
                             <p class="text-muted">
-                                <?php echo e($pelanggan->alamat1); ?>
+                                <?php echo e($pelangganData->alamat1 ?? '-'); ?>
 
-                                <?php if($pelanggan->alamat2): ?>, <?php echo e($pelanggan->alamat2); ?><?php endif; ?>
-                                <?php if($pelanggan->alamat3): ?>, <?php echo e($pelanggan->alamat3); ?><?php endif; ?>
+                                <?php if($pelangganData->alamat2): ?>, <?php echo e($pelangganData->alamat2); ?><?php endif; ?>
+                                <?php if($pelangganData->alamat3): ?>, <?php echo e($pelangganData->alamat3); ?><?php endif; ?>
                             </p>
                         </div>
                     </div>
@@ -127,10 +128,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $recentOrders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php $__empty_1 = true; $__currentLoopData = $recentOrders ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
                                     <td class="ps-4 fw-bold"><?php echo e($order->no_resi); ?></td>
-                                    <td><?php echo e($order->tgl_pesan->format('d/m/Y')); ?></td>
+                                    <td><?php echo e(\Carbon\Carbon::parse($order->tgl_pesan)->format('d/m/Y')); ?></td>
                                     <td class="fw-bold text-primary">Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></td>
                                     <td>
                                         <?php if($order->status_pesan == 'Menunggu Konfirmasi'): ?>
@@ -141,6 +142,8 @@
                                             <span class="badge bg-secondary">Menunggu Kurir</span>
                                         <?php elseif($order->status_pesan == 'Selesai'): ?>
                                             <span class="badge bg-success">Selesai</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary"><?php echo e($order->status_pesan); ?></span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="pe-4 text-end">

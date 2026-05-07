@@ -2,22 +2,10 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication Defaults
-    |--------------------------------------------------------------------------
-    */
-
     'defaults' => [
         'guard' => 'web',
         'passwords' => 'users',
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication Guards
-    |--------------------------------------------------------------------------
-    */
 
     'guards' => [
         'web' => [
@@ -25,6 +13,7 @@ return [
             'provider' => 'users',
         ],
 
+        // ✅ GUARD PELANGGAN (CUSTOMER)
         'pelanggan' => [
             'driver' => 'session',
             'provider' => 'pelanggans',
@@ -37,29 +26,18 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Providers
-    |--------------------------------------------------------------------------
-    */
-
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
 
+        // ✅ PROVIDER PELANGGAN
         'pelanggans' => [
             'driver' => 'eloquent',
             'model' => App\Models\Pelanggan::class,
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Resetting Passwords
-    |--------------------------------------------------------------------------
-    */
 
     'passwords' => [
         'users' => [
@@ -68,7 +46,6 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-
         'pelanggans' => [
             'provider' => 'pelanggans',
             'table' => 'password_reset_tokens',
@@ -76,12 +53,6 @@ return [
             'throttle' => 60,
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Password Confirmation Timeout
-    |--------------------------------------------------------------------------
-    */
 
     'password_timeout' => 10800,
 

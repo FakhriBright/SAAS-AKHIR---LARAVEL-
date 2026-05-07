@@ -7,21 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetailPemesanan extends Model
 {
-    // ✅ Nama tabel (opsional)
     protected $table = 'detail_pemesanans';
 
-    // ✅ Timestamps
     public $timestamps = true;
 
-    // ✅ MASS ASSIGNMENT - SEMUA FIELD HARUS ADA DI SINI! 🔥
+    // ✅ MASS ASSIGNMENT - SEMUA FIELD HARUS ADA!
     protected $fillable = [
-        'pemesanan_id',    // ✅ Foreign key ke pemesanans
-        'paket_id',        // ✅ Foreign key ke pakets (INI YANG ERROR!)
-        'jumlah',          // ✅ Quantity
-        'subtotal',        // ✅ Harga subtotal
+        'pemesanan_id',
+        'paket_id',
+        'jumlah',        // 🔥 WAJIB ADA DI SINI!
+        'subtotal',
     ];
 
-    // ✅ Casts untuk tipe data
+    // ✅ CASTS
     protected $casts = [
         'jumlah' => 'integer',
         'subtotal' => 'decimal:2',

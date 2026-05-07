@@ -7,6 +7,7 @@ use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -15,11 +16,20 @@ class AuthController extends Controller
      */
     public function showLogin()
     {
+        // Jika sudah login sebagai pelanggan, redirect ke dashboard customer
+        if (Auth::guard('pelanggan')->check()) {
+            return redirect()->route('customer.dashboard');
+        }
+        // Jika sudah login sebagai admin/owner/kurir, redirect ke dashboard
+        if (Auth::guard('web')->check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
     /**
-     * Process login
+     * Process login - ✅ HANDLE DUA GUARD
      */
     public function login(Request $request)
     {
@@ -31,32 +41,30 @@ class AuthController extends Controller
             'password.required' => 'Password harus diisi',
         ]);
 
-        // Cek di guard 'web' (Admin/Owner/Kurir)
+        // 🔹 CEK DI GUARD 'web' (Admin/Owner/Kurir)
         if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = Auth::guard('web')->user();
 
-            if ($user->level === 'admin') {
-                return redirect()->intended('/dashboard');
-            } elseif ($user->level === 'owner') {
+            if ($user->level === 'admin' || $user->level === 'owner') {
                 return redirect()->intended('/dashboard');
             } elseif ($user->level === 'kurir') {
                 return redirect()->intended('/pengirimans');
             }
-
             return redirect()->intended('/dashboard');
         }
 
-        // Cek di guard 'pelanggan' (Customer)
+        // 🔹 CEK DI GUARD 'pelanggan' (Customer)
         if (Auth::guard('pelanggan')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended('/customer/dashboard');
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
+        // ❌ Jika semua gagal
+        throw ValidationException::withMessages([
+            'email' => ['Email atau password yang Anda masukkan salah.'],
+        ]);
     }
 
     /**
@@ -98,6 +106,7 @@ class AuthController extends Controller
             'alamat3' => $request->alamat3,
         ]);
 
+        // Auto login setelah register
         Auth::guard('pelanggan')->login($pelanggan);
 
         return redirect()->route('customer.dashboard')
@@ -105,7 +114,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout
+     * Logout - ✅ LOGOUT DARI SEMUA GUARD
      */
     public function logout(Request $request)
     {

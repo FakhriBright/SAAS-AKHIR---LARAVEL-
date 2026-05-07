@@ -10,6 +10,7 @@ use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
@@ -18,28 +19,32 @@ class CustomerController extends Controller
      */
     public function dashboard()
     {
-        $user = Auth::user();
-
-        $pelanggan = Pelanggan::where('email', $user->email)->first();
+        // ✅ Langsung pakai $pelanggan dari Auth guard (sudah instance Pelanggan model)
+        $pelanggan = Auth::guard('pelanggan')->user();
 
         if (!$pelanggan) {
-            return redirect()->back()->with('error', 'Data pelanggan tidak ditemukan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
+        // ✅ Hitung stats pesanan
         $totalPesanan = Pemesanan::where('id_pelanggan', $pelanggan->id)->count();
+
         $pesananAktif = Pemesanan::where('id_pelanggan', $pelanggan->id)
                         ->whereIn('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir'])
                         ->count();
+
         $totalBelanja = Pemesanan::where('id_pelanggan', $pelanggan->id)
                         ->where('status_pesan', 'Selesai')
                         ->sum('total_bayar');
 
+        // ✅ Ambil 5 pesanan terakhir dengan relasi
         $recentOrders = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran'])
                         ->where('id_pelanggan', $pelanggan->id)
                         ->latest()
                         ->take(5)
                         ->get();
 
+        // ✅ Kirim variabel 'pelanggan' (sesuai nama di view)
         return view('customer.dashboard', compact(
             'totalPesanan',
             'pesananAktif',
@@ -70,29 +75,32 @@ class CustomerController extends Controller
     }
 
     /**
-     * Store Order
+     * Store Order - 🔥 FIX: Pastikan 'jumlah' terkirim!
      */
     public function storeOrder(Request $request)
     {
-        $user = Auth::user();
-        $pelanggan = Pelanggan::where('email', $user->email)->first();
+        // ✅ Ambil user dari guard pelanggan
+        $pelanggan = Auth::guard('pelanggan')->user();
 
         if (!$pelanggan) {
-            return redirect()->back()->withInput()->with('error', 'Data pelanggan tidak ditemukan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
+        // ✅ VALIDASI: Pastikan 'jumlah' ada dan valid
         $validated = $request->validate([
             'paket_id' => 'required|array|min:1',
             'paket_id.*' => 'exists:pakets,id',
-            'jumlah' => 'required|array|min:1',
-            'jumlah.*' => 'required|integer|min:1',
+            'jumlah' => 'required|array|min:1',        // 🔥 WAJIB!
+            'jumlah.*' => 'required|integer|min:1',     // 🔥 WAJIB!
             'tgl_pesan' => 'required|date|after_or_equal:today',
             'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
             'no_rek_pembayaran' => 'nullable|string|max:50',
             'catatan' => 'nullable|string|max:500',
         ], [
             'paket_id.required' => 'Minimal pilih 1 paket.',
-            'tgl_pesan.after_or_equal' => 'Tanggal pesan harus hari ini atau setelahnya.',
+            'jumlah.required' => 'Jumlah harus diisi untuk setiap paket.',
+            'jumlah.*.min' => 'Jumlah minimal 1.',
+            'tgl_pesan.after_or_equal' => 'Tanggal pesan tidak boleh di masa lalu.',
         ]);
 
         DB::beginTransaction();
@@ -100,16 +108,21 @@ class CustomerController extends Controller
             $totalBayar = 0;
             $details = [];
 
+            // 🔥 LOOP: Ambil paket DAN jumlah dengan index yang SAMA
             foreach ($validated['paket_id'] as $index => $paketId) {
                 $paket = Paket::find($paketId);
+
+                // 🔥 AMBIL JUMLAH DARI ARRAY 'jumlah' DENGAN INDEX YANG SAMA
                 $jumlah = $validated['jumlah'][$index] ?? 1;
 
                 if ($paket) {
                     $subtotal = $paket->harga * $jumlah;
                     $totalBayar += $subtotal;
 
+                    // 🔥 PASTIKAN 'jumlah' DIMASUKKAN KE ARRAY DETAIL
                     $details[] = [
                         'paket_id' => $paketId,
+                        'jumlah' => $jumlah,      // 🔥 INI YANG SERING TERLEWAT!
                         'subtotal' => $subtotal,
                     ];
                 }
@@ -119,11 +132,13 @@ class CustomerController extends Controller
                 throw new \Exception("Total bayar tidak valid");
             }
 
+            // Generate No. Resi
             $count = Pemesanan::count() + 1;
             $noResi = 'RESI-' . date('Ymd') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
+            // Simpan Pemesanan
             $pemesanan = Pemesanan::create([
-                'id_pelanggan' => $pelanggan->id,
+                'id_pelanggan' => $pelanggan->id,  // ✅ Langsung pakai $pelanggan->id
                 'id_jenis_bayar' => $validated['id_jenis_bayar'],
                 'no_resi' => $noResi,
                 'tgl_pesan' => $validated['tgl_pesan'],
@@ -132,8 +147,13 @@ class CustomerController extends Controller
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
+            // 🔥 SIMPAN DETAIL: Pastikan 'jumlah' ikut tersimpan!
             foreach ($details as $detail) {
-                $pemesanan->detailPemesanans()->create($detail);
+                $pemesanan->detailPemesanans()->create([
+                    'paket_id' => $detail['paket_id'],
+                    'jumlah' => $detail['jumlah'],    // 🔥 PASTIKAN INI ADA!
+                    'subtotal' => $detail['subtotal'],
+                ]);
             }
 
             DB::commit();
@@ -143,6 +163,7 @@ class CustomerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Customer Order Error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Gagal membuat pesanan: ' . $e->getMessage());
@@ -154,11 +175,10 @@ class CustomerController extends Controller
      */
     public function orders()
     {
-        $user = Auth::user();
-        $pelanggan = Pelanggan::where('email', $user->email)->first();
+        $pelanggan = Auth::guard('pelanggan')->user();
 
         if (!$pelanggan) {
-            return redirect()->back()->with('error', 'Data pelanggan tidak ditemukan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
         $orders = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
@@ -174,11 +194,10 @@ class CustomerController extends Controller
      */
     public function orderDetail($id)
     {
-        $user = Auth::user();
-        $pelanggan = Pelanggan::where('email', $user->email)->first();
+        $pelanggan = Auth::guard('pelanggan')->user();
 
         if (!$pelanggan) {
-            return redirect()->route('customer.orders')->with('error', 'Data pelanggan tidak ditemukan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
         $order = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran.detailJenisPembayarans', 'pengiriman.user'])
@@ -192,5 +211,81 @@ class CustomerController extends Controller
         }
 
         return view('customer.order.detail', compact('order'));
+    }
+
+    /**
+     * Cancel Order - 🔥 BARU: Fitur batalkan pesanan
+     * Hanya bisa jika status masih "Menunggu Konfirmasi"
+     */
+    public function cancelOrder($id)
+    {
+        $pelanggan = Auth::guard('pelanggan')->user();
+
+        if (!$pelanggan) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $order = Pemesanan::where('id', $id)
+                    ->where('id_pelanggan', $pelanggan->id)
+                    ->first();
+
+        if (!$order) {
+            return redirect()->route('customer.orders')
+                ->with('error', 'Pesanan tidak ditemukan atau bukan milik Anda.');
+        }
+
+        // ✅ Hanya bisa batal jika status masih "Menunggu Konfirmasi"
+        if ($order->status_pesan != 'Menunggu Konfirmasi') {
+            return redirect()->back()
+                ->with('error', 'Pesanan tidak dapat dibatalkan karena sudah diproses.');
+        }
+
+        // Update status menjadi "Dibatalkan"
+        $order->update([
+            'status_pesan' => 'Dibatalkan'
+        ]);
+
+        return redirect()->route('customer.orders')
+            ->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    /**
+     * Profile
+     */
+    public function profile()
+    {
+        $pelanggan = Auth::guard('pelanggan')->user();
+
+        if (!$pelanggan) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        // ✅ Langsung kirim $pelanggan ke view (sudah instance Pelanggan model)
+        return view('customer.profile', compact('pelanggan'));
+    }
+
+    /**
+     * Update Profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $pelanggan = Auth::guard('pelanggan')->user();
+
+        if (!$pelanggan) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $validated = $request->validate([
+            'nama_pelanggan' => 'required|string|max:255',
+            'telepon' => 'required|string|max:15',
+            'alamat1' => 'required|string',
+            'alamat2' => 'nullable|string',
+            'alamat3' => 'nullable|string',
+        ]);
+
+        // ✅ Langsung update instance yang sudah ter-authenticate
+        $pelanggan->update($validated);
+
+        return redirect()->route('customer.profile')->with('success', 'Profil berhasil diperbarui!');
     }
 }
