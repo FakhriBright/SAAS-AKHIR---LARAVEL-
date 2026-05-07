@@ -10,9 +10,10 @@ return new class extends Migration
     {
         Schema::create('detail_pemesanans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pemesanan_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('paket_id')->constrained()->cascadeOnDelete();
-            $table->integer('subtotal');
+            $table->foreignId('pemesanan_id')->constrained('pemesanans')->onDelete('cascade');
+            $table->foreignId('paket_id')->constrained('pakets')->onDelete('cascade');
+            $table->integer('jumlah');
+            $table->decimal('subtotal', 15, 2);
             $table->timestamps();
         });
     }

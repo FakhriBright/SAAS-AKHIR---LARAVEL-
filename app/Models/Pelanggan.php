@@ -2,48 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pelanggan extends Model
 {
-    use HasFactory;
-
     protected $table = 'pelanggans';
+    public $timestamps = true;
 
-protected $fillable = [
-    'nama_pelanggan',
-    'email',
-    'telepon',
-    'alamat1',
-    'alamat2',
-    'alamat3',
-    'password',
-    'tgl_lahir',
-    'kartu_id',
-    'foto',
-];
-    protected $hidden = [
+    protected $fillable = [
+        'nama_pelanggan',
+        'email',
         'password',
+        'telepon',
+        'alamat1',
+        'alamat2',
+        'alamat3',
+        'kartu_id',
+        'foto',
+        'tgl_lahir',
     ];
 
-    protected $casts = [
-        'tgl_lahir' => 'date',
-    ];
+    protected $hidden = ['password'];
 
-    public function pemesanans()
+    public function pemesanans(): HasMany
     {
         return $this->hasMany(Pemesanan::class, 'id_pelanggan');
-    }
-
-    /**
-     * Get full address
-     */
-    public function getFullAlamatAttribute()
-    {
-        $alamat = $this->alamat1;
-        if ($this->alamat2) $alamat .= ', ' . $this->alamat2;
-        if ($this->alamat3) $alamat .= ', ' . $this->alamat3;
-        return $alamat;
     }
 }

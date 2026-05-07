@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+// ✅ IMPORT INI WAJIB ADA untuk return type relationship!
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;  // ✅ INI YANG KURANG!
 
 class Pemesanan extends Model
 {
-    use HasFactory;
-
     protected $table = 'pemesanans';
+    public $timestamps = true;
 
     protected $fillable = [
         'id_pelanggan',
@@ -18,6 +20,7 @@ class Pemesanan extends Model
         'tgl_pesan',
         'status_pesan',
         'total_bayar',
+        'catatan',
     ];
 
     protected $casts = [
@@ -25,24 +28,37 @@ class Pemesanan extends Model
         'total_bayar' => 'decimal:2',
     ];
 
-    public function pelanggan()
+    /**
+     * Relasi ke Pelanggan
+     */
+    public function pelanggan(): BelongsTo
     {
         return $this->belongsTo(Pelanggan::class, 'id_pelanggan');
     }
 
-    public function jenisPembayaran()
+    /**
+     * Relasi ke Jenis Pembayaran
+     */
+    public function jenisPembayaran(): BelongsTo
     {
         return $this->belongsTo(JenisPembayaran::class, 'id_jenis_bayar');
     }
 
-    public function detailPemesanans()
+    /**
+     * Relasi ke Detail Pemesanan
+     */
+    public function detailPemesanans(): HasMany
     {
-        // ✅ Foreign key 'pemesanan_id' sesuai database
         return $this->hasMany(DetailPemesanan::class, 'pemesanan_id');
     }
 
-    public function pengiriman()
+    /**
+     * Relasi ke Pengiriman ✅ FIXED RETURN TYPE
+     */
+    public function pengiriman(): HasOne  // ✅ Sekarang Laravel tahu ini dari Illuminate\...
     {
         return $this->hasOne(Pengiriman::class, 'pemesanan_id');
     }
+
+    // ... helper methods ...
 }

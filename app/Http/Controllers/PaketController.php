@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PaketController extends Controller
 {
@@ -12,7 +13,7 @@ class PaketController extends Controller
      */
     public function index()
     {
-        $pakets = Paket::all();
+        $pakets = Paket::latest()->paginate(10);
         return view('pakets.index', compact('pakets'));
     }
 
@@ -30,22 +31,33 @@ class PaketController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_paket' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'nama_paket' => 'required|string|max:100',
+            'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'jumlah_porsi' => 'required|integer|min:1',
-            'kategori' => 'required|string|max:50',
-        ], [
-            'nama_paket.required' => 'Nama paket harus diisi',
-            'harga.required' => 'Harga harus diisi',
-            'harga.numeric' => 'Harga harus berupa angka',
-            'harga.min' => 'Harga tidak boleh negatif',
-            'jumlah_porsi.required' => 'Jumlah porsi harus diisi',
-            'jumlah_porsi.integer' => 'Jumlah porsi harus angka',
-            'kategori.required' => 'Kategori harus dipilih',
+            'jumlah_pax' => 'required|integer|min:1',  // ✅ PAKAI 'jumlah_pax'
+            'jenis' => 'required|in:Prasmanan,Box',
+            'kategori' => 'nullable|string|max:255',
+            'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        Paket::create($validated);
+        // Handle file uploads
+        $foto1 = $request->file('foto1') ? $request->file('foto1')->store('pakets', 'public') : null;
+        $foto2 = $request->file('foto2') ? $request->file('foto2')->store('pakets', 'public') : null;
+        $foto3 = $request->file('foto3') ? $request->file('foto3')->store('pakets', 'public') : null;
+
+        Paket::create([
+            'nama_paket' => $validated['nama_paket'],
+            'deskripsi' => $validated['deskripsi'],
+            'harga' => $validated['harga'],
+            'jumlah_pax' => $validated['jumlah_pax'],  // ✅ PAKAI 'jumlah_pax' BUKAN 'jumlah_porsi'
+            'jenis' => $validated['jenis'],
+            'kategori' => $validated['kategori'],
+            'foto1' => $foto1,
+            'foto2' => $foto2,
+            'foto3' => $foto3,
+        ]);
 
         return redirect()->route('pakets.index')
             ->with('success', 'Paket berhasil ditambahkan!');
@@ -62,7 +74,7 @@ class PaketController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Paket $paket)  // ✅ METHOD INI YANG MISSING!
+    public function edit(Paket $paket)
     {
         return view('pakets.edit', compact('paket'));
     }
@@ -70,20 +82,52 @@ class PaketController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Paket $paket)  // ✅ METHOD INI JUGA!
+    public function update(Request $request, Paket $paket)
     {
         $validated = $request->validate([
-            'nama_paket' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'nama_paket' => 'required|string|max:100',
+            'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'jumlah_porsi' => 'required|integer|min:1',
-            'kategori' => 'required|string|max:50',
+            'jumlah_pax' => 'required|integer|min:1',  // ✅ PAKAI 'jumlah_pax'
+            'jenis' => 'required|in:Prasmanan,Box',
+            'kategori' => 'nullable|string|max:255',
+            'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $paket->update($validated);
+        // Handle file uploads (only if new file uploaded)
+        $foto1 = $paket->foto1;
+        $foto2 = $paket->foto2;
+        $foto3 = $paket->foto3;
+
+        if ($request->hasFile('foto1')) {
+            if ($paket->foto1) Storage::disk('public')->delete($paket->foto1);
+            $foto1 = $request->file('foto1')->store('pakets', 'public');
+        }
+        if ($request->hasFile('foto2')) {
+            if ($paket->foto2) Storage::disk('public')->delete($paket->foto2);
+            $foto2 = $request->file('foto2')->store('pakets', 'public');
+        }
+        if ($request->hasFile('foto3')) {
+            if ($paket->foto3) Storage::disk('public')->delete($paket->foto3);
+            $foto3 = $request->file('foto3')->store('pakets', 'public');
+        }
+
+        $paket->update([
+            'nama_paket' => $validated['nama_paket'],
+            'deskripsi' => $validated['deskripsi'],
+            'harga' => $validated['harga'],
+            'jumlah_pax' => $validated['jumlah_pax'],  // ✅ PAKAI 'jumlah_pax'
+            'jenis' => $validated['jenis'],
+            'kategori' => $validated['kategori'],
+            'foto1' => $foto1,
+            'foto2' => $foto2,
+            'foto3' => $foto3,
+        ]);
 
         return redirect()->route('pakets.index')
-            ->with('success', 'Paket berhasil diupdate!');
+            ->with('success', 'Paket berhasil diperbarui!');
     }
 
     /**
@@ -91,7 +135,13 @@ class PaketController extends Controller
      */
     public function destroy(Paket $paket)
     {
+        // Delete images from storage
+        if ($paket->foto1) Storage::disk('public')->delete($paket->foto1);
+        if ($paket->foto2) Storage::disk('public')->delete($paket->foto2);
+        if ($paket->foto3) Storage::disk('public')->delete($paket->foto3);
+
         $paket->delete();
+
         return redirect()->route('pakets.index')
             ->with('success', 'Paket berhasil dihapus!');
     }

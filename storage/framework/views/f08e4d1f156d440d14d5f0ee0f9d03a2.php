@@ -1,21 +1,19 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Data Pemesanan'); ?>
 
-@section('title', 'Data Pemesanan')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid py-4">
-    {{-- Header --}}
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1"><i class="bi bi-cart"></i> Data Pemesanan</h2>
             <p class="text-muted mb-0">Kelola semua pesanan catering</p>
         </div>
-        <a href="{{ route('pemesanans.create') }}" class="btn btn-primary">
+        <a href="<?php echo e(route('pemesanans.create')); ?>" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Tambah Pesanan
         </a>
     </div>
 
-    {{-- Stats Cards --}}
+    
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="card border-0 shadow-sm">
@@ -26,7 +24,7 @@
                         </div>
                         <div>
                             <p class="text-muted mb-1 small">Total Pesanan</p>
-                            <h4 class="fw-bold mb-0">{{ $pemesanans->total() ?? 0 }}</h4>
+                            <h4 class="fw-bold mb-0"><?php echo e($pemesanans->total() ?? 0); ?></h4>
                         </div>
                     </div>
                 </div>
@@ -42,7 +40,8 @@
                         <div>
                             <p class="text-muted mb-1 small">Menunggu Konfirmasi</p>
                             <h4 class="fw-bold mb-0">
-                                {{ \App\Models\Pemesanan::where('status_pesan', 'Menunggu Konfirmasi')->count() }}
+                                <?php echo e(\App\Models\Pemesanan::where('status_pesan', 'Menunggu Konfirmasi')->count()); ?>
+
                             </h4>
                         </div>
                     </div>
@@ -59,7 +58,8 @@
                         <div>
                             <p class="text-muted mb-1 small">Sedang Diproses</p>
                             <h4 class="fw-bold mb-0">
-                                {{ \App\Models\Pemesanan::whereIn('status_pesan', ['Sedang Diproses', 'Menunggu Kurir'])->count() }}
+                                <?php echo e(\App\Models\Pemesanan::whereIn('status_pesan', ['Sedang Diproses', 'Menunggu Kurir'])->count()); ?>
+
                             </h4>
                         </div>
                     </div>
@@ -76,7 +76,8 @@
                         <div>
                             <p class="text-muted mb-1 small">Selesai</p>
                             <h4 class="fw-bold mb-0">
-                                {{ \App\Models\Pemesanan::where('status_pesan', 'Selesai')->count() }}
+                                <?php echo e(\App\Models\Pemesanan::where('status_pesan', 'Selesai')->count()); ?>
+
                             </h4>
                         </div>
                     </div>
@@ -85,7 +86,7 @@
         </div>
     </div>
 
-    {{-- Filter & Search --}}
+    
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body py-3">
             <div class="row g-3 align-items-center">
@@ -113,7 +114,7 @@
         </div>
     </div>
 
-    {{-- Table Pemesanan --}}
+    
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -130,42 +131,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- ✅ PAKAI $pemesanans (PLURAL) BUKAN $pemesanan --}}
-                        @forelse($pemesanans as $pemesanan)
-                        <tr class="order-row" data-status="{{ $pemesanan->status_pesan }}">
-                            <td class="ps-4 fw-bold">{{ $pemesanan->no_resi }}</td>
-                            <td>{{ $pemesanan->tgl_pesan->format('d/m/Y') }}</td>
+                        
+                        <?php $__empty_1 = true; $__currentLoopData = $pemesanans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pemesanan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr class="order-row" data-status="<?php echo e($pemesanan->status_pesan); ?>">
+                            <td class="ps-4 fw-bold"><?php echo e($pemesanan->no_resi); ?></td>
+                            <td><?php echo e($pemesanan->tgl_pesan->format('d/m/Y')); ?></td>
                             <td>
-                                <div class="fw-bold">{{ $pemesanan->pelanggan->nama_pelanggan ?? '-' }}</div>
-                                <small class="text-muted">{{ $pemesanan->pelanggan->telepon ?? '' }}</small>
+                                <div class="fw-bold"><?php echo e($pemesanan->pelanggan->nama_pelanggan ?? '-'); ?></div>
+                                <small class="text-muted"><?php echo e($pemesanan->pelanggan->telepon ?? ''); ?></small>
                             </td>
                             <td>
-                                <small>{{ $pemesanan->jenisPembayaran->metode_pembayaran ?? '-' }}</small>
+                                <small><?php echo e($pemesanan->jenisPembayaran->metode_pembayaran ?? '-'); ?></small>
                             </td>
                             <td class="fw-bold text-primary">
-                                Rp {{ number_format($pemesanan->total_bayar, 0, ',', '.') }}
+                                Rp <?php echo e(number_format($pemesanan->total_bayar, 0, ',', '.')); ?>
+
                             </td>
                             <td>
-                                @if($pemesanan->status_pesan == 'Menunggu Konfirmasi')
+                                <?php if($pemesanan->status_pesan == 'Menunggu Konfirmasi'): ?>
                                     <span class="badge bg-warning text-dark">Menunggu Konfirmasi</span>
-                                @elseif($pemesanan->status_pesan == 'Sedang Diproses')
+                                <?php elseif($pemesanan->status_pesan == 'Sedang Diproses'): ?>
                                     <span class="badge bg-info text-dark">Sedang Diproses</span>
-                                @elseif($pemesanan->status_pesan == 'Menunggu Kurir')
+                                <?php elseif($pemesanan->status_pesan == 'Menunggu Kurir'): ?>
                                     <span class="badge bg-secondary">Menunggu Kurir</span>
-                                @elseif($pemesanan->status_pesan == 'Selesai')
+                                <?php elseif($pemesanan->status_pesan == 'Selesai'): ?>
                                     <span class="badge bg-success">Selesai</span>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex gap-1 justify-content-end">
-                                    <a href="{{ route('pemesanans.show', $pemesanan->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
+                                    <a href="<?php echo e(route('pemesanans.show', $pemesanan->id)); ?>" class="btn btn-sm btn-outline-primary" title="Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('pemesanans.edit', $pemesanan->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                    <a href="<?php echo e(route('pemesanans.edit', $pemesanan->id)); ?>" class="btn btn-sm btn-outline-warning" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('pemesanans.destroy', $pemesanan->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin hapus pesanan ini?')">
-                                        @csrf @method('DELETE')
+                                    <form action="<?php echo e(route('pemesanans.destroy', $pemesanan->id)); ?>" method="POST" class="d-inline" onsubmit="return confirm('Yakin hapus pesanan ini?')">
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -173,33 +175,34 @@
                                 </div>
                             </td>
                         </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="7" class="text-center py-5">
                                 <i class="bi bi-inbox display-4 text-muted d-block mb-3"></i>
                                 <p class="text-muted mb-3">Belum ada data pemesanan</p>
-                                <a href="{{ route('pemesanans.create') }}" class="btn btn-primary">
+                                <a href="<?php echo e(route('pemesanans.create')); ?>" class="btn btn-primary">
                                     <i class="bi bi-plus-circle"></i> Tambah Pesanan Pertama
                                 </a>
                             </td>
                         </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        {{-- Pagination --}}
-        @if($pemesanans->hasPages())
+        
+        <?php if($pemesanans->hasPages()): ?>
         <div class="card-footer bg-white border-0 py-3">
-            {{ $pemesanans->links('pagination::bootstrap-5') }}
+            <?php echo e($pemesanans->links('pagination::bootstrap-5')); ?>
+
         </div>
-        @endif
+        <?php endif; ?>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     // Search filter
     document.getElementById('searchOrder')?.addEventListener('keyup', function() {
@@ -230,4 +233,5 @@
         });
     }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\catering-online\resources\views/pemesanans/index.blade.php ENDPATH**/ ?>

@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Tambah Pesanan Baru'); ?>
 
-@section('title', 'Tambah Pesanan Baru')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -11,67 +9,111 @@
                     <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Tambah Pesanan Catering</h5>
                 </div>
                 <div class="card-body p-4">
-                    @if($errors->any())
+                    <?php if($errors->any()): ?>
                     <div class="alert alert-danger alert-dismissible fade show">
                         <ul class="mb-0">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
+                            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <li><?php echo e($error); ?></li>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </ul>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    <form action="{{ route('pemesanans.store') }}" method="POST" id="orderForm">
-                        @csrf
+                    <form action="<?php echo e(route('pemesanans.store')); ?>" method="POST" id="orderForm">
+                        <?php echo csrf_field(); ?>
 
-                        {{-- Informasi Pelanggan & Pembayaran --}}
+                        
                         <div class="row g-4 mb-4">
-                            {{-- Pilih Pelanggan --}}
+                            
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Pelanggan <span class="text-danger">*</span></label>
-                                <select name="id_pelanggan" class="form-select @error('id_pelanggan') is-invalid @enderror" required>
+                                <select name="id_pelanggan" class="form-select <?php $__errorArgs = ['id_pelanggan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                     <option value="">-- Pilih Pelanggan --</option>
-                                    {{-- ✅ PAKAI $pelanggans (PLURAL) --}}
-                                    @foreach($pelanggans as $pelanggan)
-                                    <option value="{{ $pelanggan->id }}" {{ old('id_pelanggan') == $pelanggan->id ? 'selected' : '' }}>
-                                        {{ $pelanggan->nama_pelanggan }} - {{ $pelanggan->telepon }}
+                                    
+                                    <?php $__currentLoopData = $pelanggans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pelanggan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($pelanggan->id); ?>" <?php echo e(old('id_pelanggan') == $pelanggan->id ? 'selected' : ''); ?>>
+                                        <?php echo e($pelanggan->nama_pelanggan); ?> - <?php echo e($pelanggan->telepon); ?>
+
                                     </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
-                                @error('id_pelanggan')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <?php $__errorArgs = ['id_pelanggan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             </div>
 
-                            {{-- Pilih Metode Pembayaran --}}
+                            
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Metode Pembayaran <span class="text-danger">*</span></label>
-                                <select name="id_jenis_bayar" class="form-select @error('id_jenis_bayar') is-invalid @enderror" required>
+                                <select name="id_jenis_bayar" class="form-select <?php $__errorArgs = ['id_jenis_bayar'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                     <option value="">-- Pilih Metode --</option>
-                                    @foreach($jenisPembayarans as $jp)
-                                    <option value="{{ $jp->id }}" {{ old('id_jenis_bayar') == $jp->id ? 'selected' : '' }}>
-                                        {{ $jp->metode_pembayaran }}
+                                    <?php $__currentLoopData = $jenisPembayarans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($jp->id); ?>" <?php echo e(old('id_jenis_bayar') == $jp->id ? 'selected' : ''); ?>>
+                                        <?php echo e($jp->metode_pembayaran); ?>
+
                                     </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
-                                @error('id_jenis_bayar')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <?php $__errorArgs = ['id_jenis_bayar'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
 
-                        {{-- Tanggal Pesan --}}
+                        
                         <div class="mb-4">
                             <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
-                            <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror" 
-                                   value="{{ old('tgl_pesan', date('Y-m-d')) }}" required>
-                            @error('tgl_pesan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="date" name="tgl_pesan" class="form-control <?php $__errorArgs = ['tgl_pesan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                   value="<?php echo e(old('tgl_pesan', date('Y-m-d'))); ?>" required>
+                            <?php $__errorArgs = ['tgl_pesan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
-                        {{-- Detail Paket --}}
+                        
                         <div class="mb-4">
                             <label class="form-label fw-bold">Detail Paket <span class="text-danger">*</span></label>
                             <div id="paket-container">
@@ -81,11 +123,12 @@
                                             <label class="form-label small">Pilih Paket</label>
                                             <select name="paket_id[]" class="form-select" required>
                                                 <option value="">-- Pilih Paket --</option>
-                                                @foreach($pakets as $paket)
-                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">
-                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}
+                                                <?php $__currentLoopData = $pakets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($paket->id); ?>" data-harga="<?php echo e($paket->harga); ?>">
+                                                    <?php echo e($paket->nama_paket); ?> - Rp <?php echo e(number_format($paket->harga, 0, ',', '.')); ?>
+
                                                 </option>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
                                         </div>
                                         <div class="col-md-4">
@@ -105,17 +148,31 @@
                             </button>
                         </div>
 
-                        {{-- Catatan --}}
+                        
                         <div class="mb-4">
                             <label class="form-label fw-bold">Catatan (Opsional)</label>
-                            <textarea name="catatan" class="form-control @error('catatan') is-invalid @enderror" 
-                                      rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi...">{{ old('catatan') }}</textarea>
-                            @error('catatan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <textarea name="catatan" class="form-control <?php $__errorArgs = ['catatan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                      rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi..."><?php echo e(old('catatan')); ?></textarea>
+                            <?php $__errorArgs = ['catatan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
-                        {{-- Total Preview --}}
+                        
                         <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
                             <span class="fw-bold">Estimasi Total:</span>
                             <span class="fs-4 fw-bold text-primary" id="total-preview">Rp 0</span>
@@ -125,7 +182,7 @@
                             <button type="submit" class="btn btn-primary btn-lg" id="btn-submit">
                                 <i class="bi bi-check-circle"></i> Simpan Pesanan
                             </button>
-                            <a href="{{ route('pemesanans.index') }}" class="btn btn-outline-secondary">
+                            <a href="<?php echo e(route('pemesanans.index')); ?>" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i> Batal
                             </a>
                         </div>
@@ -136,7 +193,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     // Tambah paket dinamis
     function addPaket() {
@@ -151,9 +208,9 @@
                     <label class="form-label small">Pilih Paket</label>
                     <select name="paket_id[]" class="form-select" required>
                         <option value="">-- Pilih Paket --</option>
-                        @foreach($pakets as $paket)
-                        <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">{{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $pakets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($paket->id); ?>" data-harga="<?php echo e($paket->harga); ?>"><?php echo e($paket->nama_paket); ?> - Rp <?php echo e(number_format($paket->harga, 0, ',', '.')); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -228,5 +285,6 @@
         updateDeleteButtons();
     });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\catering-online\resources\views/pemesanans/create.blade.php ENDPATH**/ ?>
