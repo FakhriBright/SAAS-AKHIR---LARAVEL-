@@ -2,12 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Pelanggan extends Model
+class Pelanggan extends Authenticatable
 {
+    use Notifiable;
+
     protected $table = 'pelanggans';
+
+    protected $primaryKey = 'id';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -23,7 +33,14 @@ class Pelanggan extends Model
         'tgl_lahir',
     ];
 
-    protected $hidden = ['password'];
+    protected $hidden = [
+        'password',
+    ];
+
+    protected $casts = [
+        'password' => 'hashed',
+        'tgl_lahir' => 'date',
+    ];
 
     public function pemesanans(): HasMany
     {
