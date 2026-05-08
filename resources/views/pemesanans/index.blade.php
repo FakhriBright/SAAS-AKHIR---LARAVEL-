@@ -7,8 +7,8 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-cart"></i> Data Pemesanan</h2>
-            <p class="text-muted mb-0">Kelola semua pesanan catering</p>
+            <h2 class="fw-bold mb-1"><i class="bi bi-cart-check"></i> Data Pemesanan</h2>
+            <p class="text-muted mb-0">Kelola semua pesanan catering Fakhri Kitchen</p>
         </div>
         <a href="{{ route('pemesanans.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Tambah Pesanan
@@ -102,6 +102,7 @@
                         <option value="Sedang Diproses">Sedang Diproses</option>
                         <option value="Menunggu Kurir">Menunggu Kurir</option>
                         <option value="Selesai">Selesai</option>
+                        <option value="Dibatalkan">Dibatalkan</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -130,7 +131,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- ✅ PAKAI $pemesanans (PLURAL) BUKAN $pemesanan --}}
                         @forelse($pemesanans as $pemesanan)
                         <tr class="order-row" data-status="{{ $pemesanan->status_pesan }}">
                             <td class="ps-4 fw-bold">{{ $pemesanan->no_resi }}</td>
@@ -154,6 +154,8 @@
                                     <span class="badge bg-secondary">Menunggu Kurir</span>
                                 @elseif($pemesanan->status_pesan == 'Selesai')
                                     <span class="badge bg-success">Selesai</span>
+                                @elseif($pemesanan->status_pesan == 'Dibatalkan')
+                                    <span class="badge bg-danger">Dibatalkan</span>
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
@@ -188,7 +190,7 @@
                 </table>
             </div>
         </div>
-        
+
         {{-- Pagination --}}
         @if($pemesanans->hasPages())
         <div class="card-footer bg-white border-0 py-3">

@@ -1,194 +1,151 @@
-@extends('layouts.app')
+@extends('layouts.customer')
 
-@section('title', 'Buat Pesanan Baru')
+@section('title', 'Buat Pesanan Baru - Fakhri Kitchen')
 
 @section('content')
-<div class="container py-4">
+<div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Buat Pesanan Catering</h5>
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ route('customer.orders') }}" class="btn btn-fk-outline me-3"><i class="bi bi-arrow-left"></i></a>
+                <div>
+                    <h2 class="fw-bold mb-1">Buat Pesanan Baru</h2>
+                    <p class="text-muted mb-0">Pilih paket dan lengkapi data pemesanan Anda</p>
                 </div>
-                <div class="card-body p-4">
-                    @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <ul class="mb-0">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    @endif
+            </div>
 
-                    <form action="{{ route('customer.order.store') }}" method="POST" id="orderForm">
-                        @csrf
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show">
+                <ul class="mb-0 ps-3">@foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach</ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
-                        {{-- Tanggal Pesan --}}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
-                            <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror"
-                                   value="{{ old('tgl_pesan', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required>
-                            @error('tgl_pesan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Detail Paket --}}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Pilih Paket <span class="text-danger">*</span></label>
-                            <div id="paket-container">
-                                <div class="paket-item border rounded p-3 mb-3">
-                                    <div class="row g-3">
-                                        <div class="col-md-8">
-                                            <label class="form-label small">Paket</label>
-                                            <select name="paket_id[]" class="form-select" required>
-                                                <option value="">-- Pilih Paket --</option>
-                                                @foreach($pakets as $paket)
-                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">
-                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small">Jumlah <span class="text-danger">*</span></label>
-                                            {{-- 🔥 NAME="jumlah[]" DENGAN [] AGAR TERKIRIM SEBAGAI ARRAY --}}
-                                            <input type="number"
-                                                   name="jumlah[]"
-                                                   class="form-control"
-                                                   placeholder="Jumlah"
-                                                   min="1"
-                                                   value="1"
-                                                   required>
-                                        </div>
+            <form action="{{ route('customer.order.store') }}" method="POST" id="orderForm">
+                @csrf
+                <div class="card fk-card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-box-seam text-primary me-2"></i>Pilih Paket</h5>
+                        <div id="paket-container">
+                            <div class="paket-item border rounded p-3 mb-3 bg-light">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-medium">Paket Catering</label>
+                                        <select name="paket_id[]" class="form-select" required>
+                                            <option value="">-- Pilih Paket --</option>
+                                            @foreach($pakets as $p)
+                                            <option value="{{ $p->id }}" data-harga="{{ $p->harga }}">{{ $p->nama_paket }} - Rp {{ number_format($p->harga, 0, ',', '.') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-medium">Jumlah</label>
+                                        <input type="number" name="jumlah[]" class="form-control" min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="this.closest('.paket-item').remove(); calculateTotal();" style="display:none;"><i class="bi bi-trash"></i></button>
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPaket()">
-                                <i class="bi bi-plus"></i> Tambah Paket Lain
-                            </button>
                         </div>
-
-                        {{-- Metode Pembayaran --}}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Metode Pembayaran <span class="text-danger">*</span></label>
-                            <select name="id_jenis_bayar" id="metode-bayar" class="form-select @error('id_jenis_bayar') is-invalid @enderror" required>
-                                <option value="">-- Pilih Metode --</option>
-                                @foreach($jenisPembayarans as $jp)
-                                <option value="{{ $jp->id }}" {{ old('id_jenis_bayar') == $jp->id ? 'selected' : '' }}>
-                                    {{ $jp->metode_pembayaran }}
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('id_jenis_bayar')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- No. Rekening (Muncul jika Transfer) --}}
-                        <div class="mb-4" id="no-rek-section" style="display: none;">
-                            <label class="form-label fw-bold">No. Rekening Pengirim</label>
-                            <input type="text" name="no_rek_pembayaran" class="form-control" value="{{ old('no_rek_pembayaran') }}" placeholder="Contoh: 1234567890">
-                            <small class="text-muted">Untuk verifikasi pembayaran transfer</small>
-                        </div>
-
-                        {{-- Catatan --}}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Catatan (Opsional)</label>
-                            <textarea name="catatan" class="form-control @error('catatan') is-invalid @enderror" rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi...">{{ old('catatan') }}</textarea>
-                            @error('catatan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Total Preview --}}
-                        <div class="alert alert-info d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">Estimasi Total:</span>
-                            <span class="fs-4 fw-bold text-primary" id="total-preview">Rp 0</span>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg" id="btn-submit">
-                                <i class="bi bi-check-circle"></i> Konfirmasi & Pesan
-                            </button>
-                            <a href="{{ route('customer.dashboard') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Batal
-                            </a>
-                        </div>
-                    </form>
+                        <button type="button" class="btn btn-fk-outline btn-sm mt-2" onclick="addPaket()"><i class="bi bi-plus-circle me-1"></i> Tambah Paket Lain</button>
+                    </div>
                 </div>
-            </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card fk-card h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-calendar-event text-primary me-2"></i>Jadwal & Pembayaran</h5>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">Tanggal Pesan</label>
+                                    <input type="date" name="tgl_pesan" class="form-control" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" required>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small fw-medium">Metode Pembayaran</label>
+                                    <select name="id_jenis_bayar" id="metode-bayar" class="form-select" required>
+                                        <option value="">-- Pilih Metode --</option>
+                                        @foreach($jenisPembayarans as $jp)
+                                        <option value="{{ $jp->id }}">{{ $jp->metode_pembayaran }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card fk-card h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-text text-primary me-2"></i>Catatan (Opsional)</h5>
+                                <textarea name="catatan" class="form-control" rows="4" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi, alergen kacang..."></textarea>
+                                <div id="no-rek-section" class="mt-3 d-none">
+                                    <label class="form-label small fw-medium">No. Rekening Pengirim</label>
+                                    <input type="text" name="no_rek_pembayaran" class="form-control" placeholder="Untuk verifikasi transfer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fk-card bg-success bg-opacity-10 border-success mb-4">
+                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-success">Estimasi Total:</h5>
+                        <h3 class="mb-0 fw-bold text-success" id="total-preview">Rp 0</h3>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-fk-primary btn-lg flex-grow-1" id="btn-submit">
+                        <i class="bi bi-check-circle me-2"></i> Konfirmasi & Pesan
+                    </button>
+                    <a href="{{ route('customer.orders') }}" class="btn btn-fk-outline btn-lg">Batal</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-    // Toggle No. Rekening
-    document.getElementById('metode-bayar').addEventListener('change', function() {
-        const text = this.options[this.selectedIndex].text.toLowerCase();
-        document.getElementById('no-rek-section').style.display = (text.includes('transfer') || text.includes('bank')) ? 'block' : 'none';
-    });
-
-    // Tambah paket dinamis
     function addPaket() {
-        const container = document.getElementById('paket-container');
-        const newItem = document.createElement('div');
-        newItem.className = 'paket-item border rounded p-3 mb-3';
-        newItem.innerHTML = `
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label class="form-label small">Paket</label>
+        const c = document.getElementById('paket-container');
+        const d = document.createElement('div');
+        d.className = 'paket-item border rounded p-3 mb-3 bg-light';
+        d.innerHTML = `
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
                     <select name="paket_id[]" class="form-select" required>
                         <option value="">-- Pilih Paket --</option>
-                        @foreach($pakets as $paket)
-                        <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">{{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}</option>
-                        @endforeach
+                        @foreach($pakets as $p)<option value="{{ $p->id }}" data-harga="{{ $p->harga }}">{{ $p->nama_paket }} - Rp {{ number_format($p->harga, 0, ',', '.') }}</option>@endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label small">Jumlah *</label>
-                    {{-- 🔥 NAME="jumlah[]" WAJIB! --}}
-                    <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" min="1" value="1" required>
-                </div>
-            </div>
-        `;
-        container.appendChild(newItem);
+                <div class="col-md-3"><input type="number" name="jumlah[]" class="form-control" min="1" value="1" required></div>
+                <div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="this.closest('.paket-item').remove(); calculateTotal();"><i class="bi bi-trash"></i></button></div>
+            </div>`;
+        c.appendChild(d);
+        showDeleteBtns();
     }
-
-    // Hitung total realtime
+    function showDeleteBtns() {
+        document.querySelectorAll('.paket-item button').forEach(b => b.style.display = document.querySelectorAll('.paket-item').length > 1 ? 'block' : 'none');
+    }
     function calculateTotal() {
-        let total = 0;
-        document.querySelectorAll('select[name="paket_id[]"]').forEach((select, i) => {
-            const option = select.options[select.selectedIndex];
-            const harga = parseInt(option?.dataset.harga) || 0;
-            const jumlahInputs = document.querySelectorAll('input[name="jumlah[]"]');
-            const jumlah = parseInt(jumlahInputs[i]?.value) || 0;
-            total += harga * jumlah;
+        let t = 0;
+        document.querySelectorAll('select[name="paket_id[]"]').forEach((s, i) => {
+            let h = parseInt(s.options[s.selectedIndex]?.dataset.harga) || 0;
+            let q = parseInt(document.querySelectorAll('input[name="jumlah[]"]')[i]?.value) || 0;
+            t += h * q;
         });
-        document.getElementById('total-preview').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        document.getElementById('total-preview').textContent = 'Rp ' + t.toLocaleString('id-ID');
     }
-
-    // Auto calculate on change
-    document.addEventListener('change', function(e) {
-        if (e.target.name === 'paket_id[]' || e.target.name === 'jumlah[]') {
-            calculateTotal();
-        }
+    document.addEventListener('change', e => { if(e.target.name === 'paket_id[]' || e.target.name === 'jumlah[]') calculateTotal(); });
+    document.getElementById('metode-bayar')?.addEventListener('change', function() {
+        document.getElementById('no-rek-section').classList.toggle('d-none', !this.value.toLowerCase().includes('transfer'));
     });
-
-    // Loading state saat submit
-    document.getElementById('orderForm').addEventListener('submit', function() {
-        const btn = document.getElementById('btn-submit');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+    document.getElementById('orderForm')?.addEventListener('submit', function() {
+        document.getElementById('btn-submit').disabled = true;
+        document.getElementById('btn-submit').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
     });
-
-    // Init
-    document.addEventListener('DOMContentLoaded', function() {
-        calculateTotal();
-    });
+    document.addEventListener('DOMContentLoaded', () => { calculateTotal(); showDeleteBtns(); });
 </script>
 @endpush
-@endsection

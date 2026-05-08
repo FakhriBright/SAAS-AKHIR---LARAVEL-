@@ -5,88 +5,92 @@ namespace App\Http\Controllers;
 use App\Models\Pemesanan;
 use App\Models\Pelanggan;
 use App\Models\Paket;
+use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    /**
+     * Admin Dashboard dengan Statistik Lengkap
+     */
     public function index()
     {
-        // 1. Total Pendapatan (Hanya yang Selesai)
-        $totalPendapatan = Pemesanan::where('status_pesan', 'Selesai')->sum('total_bayar');
+        $user = auth()->user();
 
-        // 2. Total Pesanan Keseluruhan
+        // 📊 STATISTIK UTAMA
         $totalPesanan = Pemesanan::count();
-
-        // 3. Pesanan Bulan Ini
-        $pesananBulanIni = Pemesanan::whereYear('tgl_pesan', now()->year)
-                            ->whereMonth('tgl_pesan', now()->month)
+        $pesananHariIni = Pemesanan::whereDate('created_at', today())->count();
+        $pesananBulanIni = Pemesanan::whereMonth('created_at', now()->month)
+                            ->whereYear('created_at', now()->year)
                             ->count();
 
-        // 4. Pesanan Bulan Lalu (untuk hitung pertumbuhan)
-        $pesananBulanLalu = Pemesanan::whereYear('tgl_pesan', now()->year)
-                             ->whereMonth('tgl_pesan', now()->month - 1)
-                             ->count();
+        // 💰 PENDAPATAN
+        $pendapatanTotal = Pemesanan::where('status_pesan', 'Selesai')->sum('total_bayar');
+        $pendapatanBulanIni = Pemesanan::where('status_pesan', 'Selesai')
+                                ->whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)
+                                ->sum('total_bayar');
+        $pendapatanHariIni = Pemesanan::where('status_pesan', 'Selesai')
+                                ->whereDate('created_at', today())
+                                ->sum('total_bayar');
 
-        $pertumbuhanPesanan = $pesananBulanLalu > 0
-            ? round((($pesananBulanIni - $pesananBulanLalu) / $pesananBulanLalu) * 100)
-            : ($pesananBulanIni > 0 ? 100 : 0);
+        // 📈 STATUS PESANAN
+        $menungguKonfirmasi = Pemesanan::where('status_pesan', 'Menunggu Konfirmasi')->count();
+        $sedangDiproses = Pemesanan::where('status_pesan', 'Sedang Diproses')->count();
+        $menungguKurir = Pemesanan::where('status_pesan', 'Menunggu Kurir')->count();
+        $selesai = Pemesanan::where('status_pesan', 'Selesai')->count();
+        $dibatalkan = Pemesanan::where('status_pesan', 'Dibatalkan')->count();
 
-        // 5. Pesanan Pending (Menunggu Konfirmasi / Sedang Diproses)
-        $pesananPending = Pemesanan::whereIn('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses'])->count();
-
-        // 6. Total Pelanggan
+        // 👥 PELANGGAN & PRODUK
         $totalPelanggan = Pelanggan::count();
+        $totalPaket = Paket::count();
 
-        // 7. 5 Pesanan Terbaru
-        $recentPemesanan = Pemesanan::with(['pelanggan'])
-                            ->latest()
-                            ->take(5)
-                            ->get();
+        // 📦 PESANAN TERBARU (10 terakhir)
+        $recentOrders = Pemesanan::with(['pelanggan', 'jenisPembayaran'])
+                        ->latest()
+                        ->take(10)
+                        ->get();
 
-        // 8. Top 5 Paket Terlaris
-        // ✅ PERBAIKAN: Gunakan 'paket_id' bukan 'id_paket'
-        $topPakets = DB::table('detail_pemesanans')
-                    ->join('pakets', 'detail_pemesanans.paket_id', '=', 'pakets.id') // ✅ FIX DI SINI
-                    ->select(
-                        'pakets.id',
-                        'pakets.nama_paket',
-                        DB::raw('SUM(detail_pemesanans.subtotal) as total_pendapatan'),
-                        DB::raw('SUM(COALESCE(detail_pemesanans.subtotal / NULLIF(pakets.harga, 0), 1)) as total_terjual')
-                    )
-                    ->groupBy('pakets.id', 'pakets.nama_paket')
-                    ->orderBy('total_pendapatan', 'desc')
-                    ->take(5)
-                    ->get();
+        // 📅 GRAFIK: Pesanan 7 Hari Terakhir
+        $last7Days = collect(range(6, 0))->map(function ($days) {
+            $date = Carbon::today()->subDays($days);
+            return [
+                'date' => $date->format('Y-m-d'),
+                'label' => $date->format('D'), // Sen, Sel, Rab...
+                'count' => Pemesanan::whereDate('created_at', $date)->count(),
+                'revenue' => Pemesanan::whereDate('created_at', $date)
+                            ->where('status_pesan', 'Selesai')
+                            ->sum('total_bayar')
+            ];
+        });
 
-        // 9. Chart Data - 6 Bulan Terakhir
-        $chartLabels = [];
-        $chartData = [];
-
-        for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
-            $monthLabel = $date->format('M');
-
-            $count = Pemesanan::whereYear('tgl_pesan', $date->year)
-                        ->whereMonth('tgl_pesan', $date->month)
-                        ->count();
-
-            $chartLabels[] = $monthLabel;
-            $chartData[] = $count;
-        }
+        // 📊 GRAFIK: Status Pesanan (untuk chart pie/doughnut)
+        $statusData = [
+            'labels' => ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir', 'Selesai', 'Dibatalkan'],
+            'data' => [$menungguKonfirmasi, $sedangDiproses, $menungguKurir, $selesai, $dibatalkan],
+            'colors' => ['#ffc107', '#17a2b8', '#6c757d', '#28a745', '#dc3545']
+        ];
 
         return view('dashboard', compact(
-            'totalPendapatan',
             'totalPesanan',
+            'pesananHariIni',
             'pesananBulanIni',
-            'pertumbuhanPesanan',
-            'pesananPending',
+            'pendapatanTotal',
+            'pendapatanBulanIni',
+            'pendapatanHariIni',
+            'menungguKonfirmasi',
+            'sedangDiproses',
+            'menungguKurir',
+            'selesai',
+            'dibatalkan',
             'totalPelanggan',
-            'recentPemesanan',
-            'topPakets',
-            'chartLabels',
-            'chartData'
+            'totalPaket',
+            'recentOrders',
+            'last7Days',
+            'statusData',
+            'user'
         ));
     }
 }
