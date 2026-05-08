@@ -33,7 +33,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                    value="<?php echo e(old('nama_paket')); ?>" required placeholder="Contoh: Paket Premium">
                             <?php $__errorArgs = ['nama_paket'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -57,7 +57,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                       rows="3" required placeholder="Deskripsi paket..."><?php echo e(old('deskripsi')); ?></textarea>
                             <?php $__errorArgs = ['deskripsi'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -82,7 +82,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                        value="<?php echo e(old('harga')); ?>" min="0" required placeholder="50000">
                                 <?php $__errorArgs = ['harga'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -104,7 +104,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                        value="<?php echo e(old('jumlah_pax')); ?>" min="1" required placeholder="1">
                                 <?php $__errorArgs = ['jumlah_pax'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -121,9 +121,9 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Jenis Paket <span class="text-danger">*</span></label>
-                            <select name="jenis" class="form-select <?php $__errorArgs = ['jenis'];
+<div class="mb-3">
+    <label class="form-label fw-bold">Jenis Paket <span class="text-danger">*</span></label>
+    <select name="jenis" class="form-select <?php $__errorArgs = ['jenis'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -131,22 +131,24 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" required>
-                                <option value="">-- Pilih Jenis --</option>
-                                <option value="Prasmanan" <?php echo e(old('jenis') == 'Prasmanan' ? 'selected' : ''); ?>>Prasmanan</option>
-                                <option value="Box" <?php echo e(old('jenis') == 'Box' ? 'selected' : ''); ?>>Box</option>
-                            </select>
-                            <?php $__errorArgs = ['jenis'];
+        <option value="">-- Pilih Jenis Paket --</option>
+        <option value="Prasmanan" <?php echo e(old('jenis') == 'Prasmanan' ? 'selected' : ''); ?>>Prasmanan - Sajian lengkap untuk acara besar</option>
+        <option value="Meal Box" <?php echo e(old('jenis') == 'Meal Box' ? 'selected' : ''); ?>>Meal Box - Nasi box praktis</option>
+        <option value="Snack Box" <?php echo e(old('jenis') == 'Snack Box' ? 'selected' : ''); ?>>Snack Box - Camilan untuk meeting</option>
+        <option value="Tumpeng" <?php echo e(old('jenis') == 'Tumpeng' ? 'selected' : ''); ?>>Tumpeng - Spesial syukuran & perayaan</option>
+    </select>
+    <?php $__errorArgs = ['jenis'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                <div class="invalid-feedback"><?php echo e($message); ?></div>
-                            <?php unset($message);
+        <div class="invalid-feedback"><?php echo e($message); ?></div>
+    <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                        </div>
-
+    <small class="text-muted">Pilih kategori paket sesuai jenis acara</small>
+</div>
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Kategori (Opsional)</label>
@@ -157,7 +159,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                    value="<?php echo e(old('kategori')); ?>" placeholder="Contoh: Prewedding, Ulang Tahun">
                             <?php $__errorArgs = ['kategori'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -175,7 +177,7 @@ unset($__errorArgs, $__bag); ?>
                         
                         <div class="mb-4">
                             <label class="form-label fw-bold">Foto Paket (Opsional)</label>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto Utama</label>
                                 <input type="file" name="foto1" class="form-control <?php $__errorArgs = ['foto1'];
@@ -197,7 +199,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto 2</label>
                                 <input type="file" name="foto2" class="form-control <?php $__errorArgs = ['foto2'];
@@ -219,7 +221,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto 3</label>
                                 <input type="file" name="foto3" class="form-control <?php $__errorArgs = ['foto3'];
@@ -258,4 +260,5 @@ unset($__errorArgs, $__bag); ?>
     </div>
 </div>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\SAAS-AKHIR-LARAVEL\resources\views/pakets/create.blade.php ENDPATH**/ ?>

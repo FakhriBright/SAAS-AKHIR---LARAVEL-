@@ -28,7 +28,7 @@
                         {{-- Nama Paket --}}
                         <div class="mb-3">
                             <label class="form-label fw-bold">Nama Paket <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_paket" class="form-control @error('nama_paket') is-invalid @enderror" 
+                            <input type="text" name="nama_paket" class="form-control @error('nama_paket') is-invalid @enderror"
                                    value="{{ old('nama_paket') }}" required placeholder="Contoh: Paket Premium">
                             @error('nama_paket')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -38,7 +38,7 @@
                         {{-- Deskripsi --}}
                         <div class="mb-3">
                             <label class="form-label fw-bold">Deskripsi <span class="text-danger">*</span></label>
-                            <textarea name="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror" 
+                            <textarea name="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror"
                                       rows="3" required placeholder="Deskripsi paket...">{{ old('deskripsi') }}</textarea>
                             @error('deskripsi')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -49,7 +49,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Harga (Rp) <span class="text-danger">*</span></label>
-                                <input type="number" name="harga" class="form-control @error('harga') is-invalid @enderror" 
+                                <input type="number" name="harga" class="form-control @error('harga') is-invalid @enderror"
                                        value="{{ old('harga') }}" min="0" required placeholder="50000">
                                 @error('harga')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -57,7 +57,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Jumlah Pax <span class="text-danger">*</span></label>
-                                <input type="number" name="jumlah_pax" class="form-control @error('jumlah_pax') is-invalid @enderror" 
+                                <input type="number" name="jumlah_pax" class="form-control @error('jumlah_pax') is-invalid @enderror"
                                        value="{{ old('jumlah_pax') }}" min="1" required placeholder="1">
                                 @error('jumlah_pax')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -67,22 +67,24 @@
                         </div>
 
                         {{-- Jenis Paket --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Jenis Paket <span class="text-danger">*</span></label>
-                            <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" required>
-                                <option value="">-- Pilih Jenis --</option>
-                                <option value="Prasmanan" {{ old('jenis') == 'Prasmanan' ? 'selected' : '' }}>Prasmanan</option>
-                                <option value="Box" {{ old('jenis') == 'Box' ? 'selected' : '' }}>Box</option>
-                            </select>
-                            @error('jenis')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
+<div class="mb-3">
+    <label class="form-label fw-bold">Jenis Paket <span class="text-danger">*</span></label>
+    <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" required>
+        <option value="">-- Pilih Jenis Paket --</option>
+        <option value="Prasmanan" {{ old('jenis') == 'Prasmanan' ? 'selected' : '' }}>Prasmanan - Sajian lengkap untuk acara besar</option>
+        <option value="Meal Box" {{ old('jenis') == 'Meal Box' ? 'selected' : '' }}>Meal Box - Nasi box praktis</option>
+        <option value="Snack Box" {{ old('jenis') == 'Snack Box' ? 'selected' : '' }}>Snack Box - Camilan untuk meeting</option>
+        <option value="Tumpeng" {{ old('jenis') == 'Tumpeng' ? 'selected' : '' }}>Tumpeng - Spesial syukuran & perayaan</option>
+    </select>
+    @error('jenis')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    <small class="text-muted">Pilih kategori paket sesuai jenis acara</small>
+</div>
                         {{-- Kategori --}}
                         <div class="mb-3">
                             <label class="form-label fw-bold">Kategori (Opsional)</label>
-                            <input type="text" name="kategori" class="form-control @error('kategori') is-invalid @enderror" 
+                            <input type="text" name="kategori" class="form-control @error('kategori') is-invalid @enderror"
                                    value="{{ old('kategori') }}" placeholder="Contoh: Prewedding, Ulang Tahun">
                             @error('kategori')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -93,7 +95,7 @@
                         {{-- Upload Foto --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Foto Paket (Opsional)</label>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto Utama</label>
                                 <input type="file" name="foto1" class="form-control @error('foto1') is-invalid @enderror" accept="image/*">
@@ -101,7 +103,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto 2</label>
                                 <input type="file" name="foto2" class="form-control @error('foto2') is-invalid @enderror" accept="image/*">
@@ -109,7 +111,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="mb-2">
                                 <label class="form-label small">Foto 3</label>
                                 <input type="file" name="foto3" class="form-control @error('foto3') is-invalid @enderror" accept="image/*">

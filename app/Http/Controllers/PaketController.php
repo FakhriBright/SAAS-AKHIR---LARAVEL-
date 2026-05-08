@@ -31,15 +31,24 @@ class PaketController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_paket' => 'required|string|max:100',
+            'nama_paket' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'jumlah_pax' => 'required|integer|min:1',  // ✅ PAKAI 'jumlah_pax'
-            'jenis' => 'required|in:Prasmanan,Box',
+            'jumlah_pax' => 'required|integer|min:1',
+            'jenis' => 'required|in:Prasmanan,Meal Box,Snack Box,Tumpeng',
             'kategori' => 'nullable|string|max:255',
             'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'jenis.in' => 'Jenis paket harus salah satu dari: Prasmanan, Meal Box, Snack Box, atau Tumpeng',
+            'nama_paket.required' => 'Nama paket harus diisi',
+            'deskripsi.required' => 'Deskripsi harus diisi',
+            'harga.required' => 'Harga harus diisi',
+            'harga.numeric' => 'Harga harus berupa angka',
+            'jumlah_pax.required' => 'Jumlah pax harus diisi',
+            'jumlah_pax.integer' => 'Jumlah pax harus berupa angka',
+            'jumlah_pax.min' => 'Jumlah pax minimal 1',
         ]);
 
         // Handle file uploads
@@ -51,7 +60,7 @@ class PaketController extends Controller
             'nama_paket' => $validated['nama_paket'],
             'deskripsi' => $validated['deskripsi'],
             'harga' => $validated['harga'],
-            'jumlah_pax' => $validated['jumlah_pax'],  // ✅ PAKAI 'jumlah_pax' BUKAN 'jumlah_porsi'
+            'jumlah_pax' => $validated['jumlah_pax'],
             'jenis' => $validated['jenis'],
             'kategori' => $validated['kategori'],
             'foto1' => $foto1,
@@ -60,7 +69,7 @@ class PaketController extends Controller
         ]);
 
         return redirect()->route('pakets.index')
-            ->with('success', 'Paket berhasil ditambahkan!');
+            ->with('success', 'Paket catering berhasil ditambahkan!');
     }
 
     /**
@@ -85,18 +94,27 @@ class PaketController extends Controller
     public function update(Request $request, Paket $paket)
     {
         $validated = $request->validate([
-            'nama_paket' => 'required|string|max:100',
+            'nama_paket' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'jumlah_pax' => 'required|integer|min:1',  // ✅ PAKAI 'jumlah_pax'
-            'jenis' => 'required|in:Prasmanan,Box',
+            'jumlah_pax' => 'required|integer|min:1',
+            'jenis' => 'required|in:Prasmanan,Meal Box,Snack Box,Tumpeng',
             'kategori' => 'nullable|string|max:255',
             'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'jenis.in' => 'Jenis paket harus salah satu dari: Prasmanan, Meal Box, Snack Box, atau Tumpeng',
+            'nama_paket.required' => 'Nama paket harus diisi',
+            'deskripsi.required' => 'Deskripsi harus diisi',
+            'harga.required' => 'Harga harus diisi',
+            'harga.numeric' => 'Harga harus berupa angka',
+            'jumlah_pax.required' => 'Jumlah pax harus diisi',
+            'jumlah_pax.integer' => 'Jumlah pax harus berupa angka',
+            'jumlah_pax.min' => 'Jumlah pax minimal 1',
         ]);
 
-        // Handle file uploads (only if new file uploaded)
+        // Handle file uploads - keep old files if no new upload
         $foto1 = $paket->foto1;
         $foto2 = $paket->foto2;
         $foto3 = $paket->foto3;
@@ -105,10 +123,12 @@ class PaketController extends Controller
             if ($paket->foto1) Storage::disk('public')->delete($paket->foto1);
             $foto1 = $request->file('foto1')->store('pakets', 'public');
         }
+
         if ($request->hasFile('foto2')) {
             if ($paket->foto2) Storage::disk('public')->delete($paket->foto2);
             $foto2 = $request->file('foto2')->store('pakets', 'public');
         }
+
         if ($request->hasFile('foto3')) {
             if ($paket->foto3) Storage::disk('public')->delete($paket->foto3);
             $foto3 = $request->file('foto3')->store('pakets', 'public');
@@ -118,7 +138,7 @@ class PaketController extends Controller
             'nama_paket' => $validated['nama_paket'],
             'deskripsi' => $validated['deskripsi'],
             'harga' => $validated['harga'],
-            'jumlah_pax' => $validated['jumlah_pax'],  // ✅ PAKAI 'jumlah_pax'
+            'jumlah_pax' => $validated['jumlah_pax'],
             'jenis' => $validated['jenis'],
             'kategori' => $validated['kategori'],
             'foto1' => $foto1,
@@ -127,7 +147,7 @@ class PaketController extends Controller
         ]);
 
         return redirect()->route('pakets.index')
-            ->with('success', 'Paket berhasil diperbarui!');
+            ->with('success', 'Paket catering berhasil diperbarui!');
     }
 
     /**
@@ -135,7 +155,7 @@ class PaketController extends Controller
      */
     public function destroy(Paket $paket)
     {
-        // Delete images from storage
+        // Delete photos
         if ($paket->foto1) Storage::disk('public')->delete($paket->foto1);
         if ($paket->foto2) Storage::disk('public')->delete($paket->foto2);
         if ($paket->foto3) Storage::disk('public')->delete($paket->foto3);
@@ -143,6 +163,6 @@ class PaketController extends Controller
         $paket->delete();
 
         return redirect()->route('pakets.index')
-            ->with('success', 'Paket berhasil dihapus!');
+            ->with('success', 'Paket catering berhasil dihapus!');
     }
 }
