@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Fakhri Kitchen Customer')</title>
+    <title><?php echo $__env->yieldContent('title', 'Fakhri Kitchen Customer'); ?></title>
     
-    {{-- CSS Dependencies --}}
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -100,16 +100,16 @@
             .user-info { display: none; } /* Hide name on mobile */
         }
     </style>
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
 
-    {{-- Overlay Mobile --}}
+    
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    {{-- Sidebar --}}
+    
     <nav class="sidebar" id="sidebar">
-        <a href="{{ route('home') }}" class="sidebar-brand text-decoration-none">
+        <a href="<?php echo e(route('home')); ?>" class="sidebar-brand text-decoration-none">
     <i class="bi bi-cup-hot-fill"></i>
     <h4>Fakhri Kitchen</h4>
 </a>
@@ -117,27 +117,27 @@
         
         <ul class="sidebar-menu">
             <li>
-        <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
+        <a href="<?php echo e(route('home')); ?>" class="<?php echo e(request()->routeIs('home') ? 'active' : ''); ?>">
             <i class="bi bi-house-door"></i> <span>Beranda</span>
         </a>
     </li>
             <li>
-                <a href="{{ route('customer.dashboard') }}" class="{{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
+                <a href="<?php echo e(route('customer.dashboard')); ?>" class="<?php echo e(request()->routeIs('customer.dashboard') ? 'active' : ''); ?>">
                     <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('customer.catalog') }}" class="{{ request()->routeIs('customer.catalog') ? 'active' : '' }}">
+                <a href="<?php echo e(route('customer.catalog')); ?>" class="<?php echo e(request()->routeIs('customer.catalog') ? 'active' : ''); ?>">
                     <i class="bi bi-grid-3x3"></i> <span>Katalog Paket</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('customer.orders') }}" class="{{ request()->routeIs('customer.orders', 'customer.order.*') ? 'active' : '' }}">
+                <a href="<?php echo e(route('customer.orders')); ?>" class="<?php echo e(request()->routeIs('customer.orders', 'customer.order.*') ? 'active' : ''); ?>">
                     <i class="bi bi-clock-history"></i> <span>Riwayat Pesanan</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('customer.profile') }}" class="{{ request()->routeIs('customer.profile') ? 'active' : '' }}">
+                <a href="<?php echo e(route('customer.profile')); ?>" class="<?php echo e(request()->routeIs('customer.profile') ? 'active' : ''); ?>">
                     <i class="bi bi-person-circle"></i> <span>Profil Saya</span>
                 </a>
             </li>
@@ -149,9 +149,9 @@
         </ul>
     </nav>
 
-    {{-- Main Content --}}
+    
     <div class="main-content">
-        {{-- Top Bar --}}
+        
         <header class="topbar">
             <button class="toggle-sidebar" onclick="toggleSidebar()">
                 <i class="bi bi-list"></i>
@@ -159,25 +159,26 @@
             
             <div class="user-profile">
                 <div class="text-end d-none d-md-block user-info">
-                    <span class="user-name">{{ Auth::guard('pelanggan')->user()->nama_pelanggan }}</span>
+                    <span class="user-name"><?php echo e(Auth::guard('pelanggan')->user()->nama_pelanggan); ?></span>
                     <span class="user-role">Pelanggan</span>
                 </div>
                 <div class="user-avatar">
-                    {{ strtoupper(substr(Auth::guard('pelanggan')->user()->nama_pelanggan, 0, 1)) }}
+                    <?php echo e(strtoupper(substr(Auth::guard('pelanggan')->user()->nama_pelanggan, 0, 1))); ?>
+
                 </div>
             </div>
         </header>
 
-        {{-- Page Content Injection --}}
+        
         <div class="page-content">
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </div>
     </div>
 
-    {{-- Hidden Logout Form --}}
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
+    
+    <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: none;"><?php echo csrf_field(); ?></form>
 
-    {{-- Scripts --}}
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function toggleSidebar() {
@@ -192,6 +193,6 @@
             }
         }
     </script>
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
-</html>
+</html><?php /**PATH C:\laragon\www\SAAS-AKHIR---LARAVEL-\resources\views/layouts/customer.blade.php ENDPATH**/ ?>

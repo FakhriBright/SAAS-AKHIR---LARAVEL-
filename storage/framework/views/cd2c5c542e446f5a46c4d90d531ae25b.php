@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Fakhri Kitchen - Catering Premium')</title>
+    <title><?php echo $__env->yieldContent('title', 'Fakhri Kitchen - Catering Premium'); ?></title>
 
-    {{-- Bootstrap 5 CSS --}}
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    {{-- Bootstrap Icons --}}
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    {{-- Google Fonts --}}
+    
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -483,13 +483,13 @@
             }
         }
     </style>
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
-    {{-- Navbar --}}
+    
     <nav class="navbar navbar-expand-lg navbar-landing fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand navbar-brand-custom" href="{{ url('/') }}">
+            <a class="navbar-brand navbar-brand-custom" href="<?php echo e(url('/')); ?>">
                 <i class="bi bi-cup-hot-fill"></i> Fakhri Kitchen
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -512,29 +512,29 @@
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" href="#testimonials">Testimoni</a>
                     </li>
-                    @auth('pelanggan')
+                    <?php if(auth()->guard('pelanggan')->check()): ?>
                         <li class="nav-item ms-3">
-                            <a href="{{ route('customer.dashboard') }}" class="btn btn-cta">
+                            <a href="<?php echo e(route('customer.dashboard')); ?>" class="btn btn-cta">
                                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
                             </a>
                         </li>
-                    @else
+                    <?php else: ?>
                         <li class="nav-item ms-2">
-                            <a href="{{ route('login') }}" class="nav-link nav-link-custom">Login</a>
+                            <a href="<?php echo e(route('login')); ?>" class="nav-link nav-link-custom">Login</a>
                         </li>
                         <li class="nav-item ms-2">
-                            <a href="{{ route('register') }}" class="btn btn-cta">Pesan Sekarang</a>
+                            <a href="<?php echo e(route('register')); ?>" class="btn btn-cta">Pesan Sekarang</a>
                         </li>
-                    @endauth
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
     </nav>
 
-    {{-- Content --}}
-    @yield('content')
+    
+    <?php echo $__env->yieldContent('content'); ?>
 
-    {{-- Footer --}}
+    
     <footer class="footer-landing">
         <div class="container">
             <div class="row g-4">
@@ -571,12 +571,12 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <small class="text-white-50">&copy; {{ date('Y') }} Fakhri Kitchen. All rights reserved.</small>
+                <small class="text-white-50">&copy; <?php echo e(date('Y')); ?> Fakhri Kitchen. All rights reserved.</small>
             </div>
         </div>
     </footer>
 
-    {{-- Bootstrap JS --}}
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -607,6 +607,7 @@
         });
     </script>
 
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
+<?php /**PATH C:\laragon\www\SAAS-AKHIR---LARAVEL-\resources\views/layouts/landing-layout.blade.php ENDPATH**/ ?>

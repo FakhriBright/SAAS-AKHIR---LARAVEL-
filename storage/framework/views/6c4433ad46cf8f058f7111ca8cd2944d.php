@@ -1,10 +1,8 @@
-@extends('layouts.landing-layout')
+<?php $__env->startSection('title', 'Fakhri Kitchen - Catering Premium Bogor'); ?>
 
-@section('title', 'Fakhri Kitchen - Catering Premium Bogor')
+<?php $__env->startSection('content'); ?>
 
-@section('content')
 
-{{-- Hero Section --}}
 <section class="hero-section" id="home">
     <div class="container">
         <div class="row align-items-center">
@@ -18,7 +16,7 @@
                     dengan cinta dan bahan berkualitas terbaik.
                 </p>
                 <div class="d-flex gap-3 flex-wrap">
-                    <a href="{{ route('register') }}" class="btn btn-cta btn-lg">
+                    <a href="<?php echo e(route('register')); ?>" class="btn btn-cta btn-lg">
                         <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
                     </a>
                     <a href="#offerings" class="btn btn-outline-cta btn-lg">
@@ -42,8 +40,8 @@
             </div>
             <div class="col-lg-6">
                 <div class="hero-image-wrapper">
-                    {{-- IMAGE: hero-food.jpg --}}
-                    <img src="{{ asset('images/landing/hero-food.jpg') }}" alt="Catering Fakhri Kitchen" class="hero-image">
+                    
+                    <img src="<?php echo e(asset('images/landing/hero-food.jpg')); ?>" alt="Catering Fakhri Kitchen" class="hero-image">
                     <div class="hero-badge">
                         <i class="bi bi-award"></i> Premium Quality Since 2024
                     </div>
@@ -53,7 +51,7 @@
     </div>
 </section>
 
-{{-- Values Section --}}
+
 <section class="values-section" id="values">
     <div class="container">
         <div class="text-center mb-5">
@@ -61,7 +59,7 @@
             <p class="text-white-50">Komitmen kami untuk memberikan yang terbaik</p>
         </div>
         <div class="row g-4">
-            {{-- Excellence --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
@@ -72,7 +70,7 @@
                 </div>
             </div>
             
-            {{-- Innovation --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
@@ -83,7 +81,7 @@
                 </div>
             </div>
             
-            {{-- Quality --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
@@ -94,7 +92,7 @@
                 </div>
             </div>
             
-            {{-- Sustainability --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
@@ -108,7 +106,7 @@
     </div>
 </section>
 
-{{-- Offerings Section --}}
+
 <section class="offerings-section" id="offerings">
     <div class="container">
         <div class="text-center">
@@ -116,54 +114,54 @@
             <p class="section-subtitle">Pilih paket catering yang sesuai dengan kebutuhan Anda</p>
         </div>
         <div class="row g-4">
-            {{-- Buffet / Prasmanan --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-buffet.jpg --}}
-                    <img src="{{ asset('images/landing/offering-buffet.jpg') }}" alt="Prasmanan">
+                    
+                    <img src="<?php echo e(asset('images/landing/offering-buffet.jpg')); ?>" alt="Prasmanan">
                     <div class="card-body">
                         <h5>Prasmanan</h5>
                         <p>Sajian lengkap dengan berbagai pilihan menu untuk acara besar Anda.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="<?php echo e(route('customer.catalog')); ?>" class="btn btn-offering mt-2">Lihat Detail</a>
                     </div>
                 </div>
             </div>
 
-            {{-- Meal Box --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-mealbox.jpg --}}
-                    <img src="{{ asset('images/landing/offering-mealbox.jpg') }}" alt="Meal Box">
+                    
+                    <img src="<?php echo e(asset('images/landing/offering-mealbox.jpg')); ?>" alt="Meal Box">
                     <div class="card-body">
                         <h5>Meal Box</h5>
                         <p>Nasi box praktis dengan porsi pas dan cita rasa terbaik.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="<?php echo e(route('customer.catalog')); ?>" class="btn btn-offering mt-2">Lihat Detail</a>
                     </div>
                 </div>
             </div>
 
-            {{-- Snack Box --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-snackbox.jpg --}}
-                    <img src="{{ asset('images/landing/offering-snackbox.jpg') }}" alt="Snack Box">
+                    
+                    <img src="<?php echo e(asset('images/landing/offering-snackbox.jpg')); ?>" alt="Snack Box">
                     <div class="card-body">
                         <h5>Snack Box</h5>
                         <p>Camilan lezat untuk meeting, seminar, atau acara santai Anda.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="<?php echo e(route('customer.catalog')); ?>" class="btn btn-offering mt-2">Lihat Detail</a>
                     </div>
                 </div>
             </div>
 
-            {{-- Tumpeng --}}
+            
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-tumpeng.jpg --}}
-                    <img src="{{ asset('images/landing/offering-tumpeng.jpg') }}" alt="Tumpeng">
+                    
+                    <img src="<?php echo e(asset('images/landing/offering-tumpeng.jpg')); ?>" alt="Tumpeng">
                     <div class="card-body">
                         <h5>Tumpeng</h5>
                         <p>Tumpeng spesial untuk syukuran, ulang tahun, dan perayaan.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="<?php echo e(route('customer.catalog')); ?>" class="btn btn-offering mt-2">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -171,7 +169,7 @@
     </div>
 </section>
 
-{{-- Gallery Section --}}
+
 <section class="gallery-section" id="gallery">
     <div class="container">
         <div class="text-center mb-5">
@@ -179,31 +177,31 @@
             <p class="section-subtitle">Intip kelezatan hidangan kami</p>
         </div>
         <div class="gallery-grid">
-            {{-- IMAGE: gallery-1.jpg (large, spans 2x2) --}}
+            
             <div class="gallery-item">
-                <img src="{{ asset('images/landing/gallery-1.jpg') }}" alt="Gallery 1">
+                <img src="<?php echo e(asset('images/landing/gallery-1.jpg')); ?>" alt="Gallery 1">
             </div>
-            {{-- IMAGE: gallery-2.jpg --}}
+            
             <div class="gallery-item">
-                <img src="{{ asset('images/landing/gallery-2.jpg') }}" alt="Gallery 2">
+                <img src="<?php echo e(asset('images/landing/gallery-2.jpg')); ?>" alt="Gallery 2">
             </div>
-            {{-- IMAGE: gallery-3.jpg --}}
+            
             <div class="gallery-item">
-                <img src="{{ asset('images/landing/gallery-3.jpg') }}" alt="Gallery 3">
+                <img src="<?php echo e(asset('images/landing/gallery-3.jpg')); ?>" alt="Gallery 3">
             </div>
-            {{-- IMAGE: gallery-4.jpg --}}
+            
             <div class="gallery-item">
-                <img src="{{ asset('images/landing/gallery-4.jpg') }}" alt="Gallery 4">
+                <img src="<?php echo e(asset('images/landing/gallery-4.jpg')); ?>" alt="Gallery 4">
             </div>
-            {{-- IMAGE: gallery-5.jpg --}}
+            
             <div class="gallery-item">
-                <img src="{{ asset('images/landing/gallery-5.jpg') }}" alt="Gallery 5">
+                <img src="<?php echo e(asset('images/landing/gallery-5.jpg')); ?>" alt="Gallery 5">
             </div>
         </div>
     </div>
 </section>
 
-{{-- Testimonials Section --}}
+
 <section class="testimonials-section" id="testimonials">
     <div class="container">
         <div class="text-center mb-5">
@@ -222,8 +220,8 @@
                     </div>
                     <p>"Fakhri Kitchen's catering service transformed our wedding reception into a truly unforgettable culinary experience. The flavors were exceptional!"</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-1.jpg --}}
-                        <img src="{{ asset('images/landing/testimonial-1.jpg') }}" alt="Sarah" class="testimonial-avatar">
+                        
+                        <img src="<?php echo e(asset('images/landing/testimonial-1.jpg')); ?>" alt="Sarah" class="testimonial-avatar">
                         <div>
                             <h6>Sarah Putri</h6>
                             <small>Wedding Event</small>
@@ -242,8 +240,8 @@
                     </div>
                     <p>"We ordered meal boxes for our corporate event and everyone loved it. Great variety, delicious food, and always on time!"</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-2.jpg --}}
-                        <img src="{{ asset('images/landing/testimonial-2.jpg') }}" alt="Ahmad" class="testimonial-avatar">
+                        
+                        <img src="<?php echo e(asset('images/landing/testimonial-2.jpg')); ?>" alt="Ahmad" class="testimonial-avatar">
                         <div>
                             <h6>Ahmad Rizky</h6>
                             <small>Corporate Event</small>
@@ -262,8 +260,8 @@
                     </div>
                     <p>"The cooking class I attended was educational but incredibly fun! The team is professional and the tumpeng was gorgeous."</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-3.jpg --}}
-                        <img src="{{ asset('images/landing/testimonial-3.jpg') }}" alt="Diana" class="testimonial-avatar">
+                        
+                        <img src="<?php echo e(asset('images/landing/testimonial-3.jpg')); ?>" alt="Diana" class="testimonial-avatar">
                         <div>
                             <h6>Diana Sari</h6>
                             <small>Syukuran Event</small>
@@ -275,13 +273,13 @@
     </div>
 </section>
 
-{{-- CTA Section --}}
+
 <section class="cta-section">
     <div class="container">
         <h2>Ready to Elevate Your Culinary Journey?</h2>
         <p>Hubungi kami sekarang dan dapatkan penawaran spesial untuk acara Anda!</p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="{{ route('register') }}" class="btn btn-cta-white btn-lg">
+            <a href="<?php echo e(route('register')); ?>" class="btn btn-cta-white btn-lg">
                 <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
             </a>
             <a href="https://wa.me/6281234567890" class="btn btn-outline-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem; font-weight: 600;">
@@ -291,4 +289,6 @@
     </div>
 </section>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.landing-layout', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\SAAS-AKHIR---LARAVEL-\resources\views/landing.blade.php ENDPATH**/ ?>
