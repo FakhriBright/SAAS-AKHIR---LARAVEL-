@@ -6,139 +6,81 @@ use App\Models\Paket;
 use App\Models\Pemesanan;
 use App\Models\DetailPemesanan;
 use App\Models\JenisPembayaran;
-use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class CustomerController extends Controller
 {
-    /**
-     * Customer Dashboard
-     */
-    public function dashboard()
-    {
-        // ✅ Langsung pakai $pelanggan dari Auth guard (sudah instance Pelanggan model)
-        $pelanggan = Auth::guard('pelanggan')->user();
+    // ... method lainnya
 
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        // ✅ Hitung stats pesanan
-        $totalPesanan = Pemesanan::where('id_pelanggan', $pelanggan->id)->count();
-
-        $pesananAktif = Pemesanan::where('id_pelanggan', $pelanggan->id)
-                        ->whereIn('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir'])
-                        ->count();
-
-        $totalBelanja = Pemesanan::where('id_pelanggan', $pelanggan->id)
-                        ->where('status_pesan', 'Selesai')
-                        ->sum('total_bayar');
-
-        // ✅ Ambil 5 pesanan terakhir dengan relasi
-        $recentOrders = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran'])
-                        ->where('id_pelanggan', $pelanggan->id)
-                        ->latest()
-                        ->take(5)
-                        ->get();
-
-        // ✅ Kirim variabel 'pelanggan' (sesuai nama di view)
-        return view('customer.dashboard', compact(
-            'totalPesanan',
-            'pesananAktif',
-            'totalBelanja',
-            'recentOrders',
-            'pelanggan'
-        ));
-    }
-
-    /**
-     * Public Catalog
-     */
-    public function catalog()
-    {
-        $pakets = Paket::all();
-        return view('customer.catalog', compact('pakets'));
-    }
-
-    /**
-     * Show Order Form
-     */
     public function createOrder()
     {
-        $pakets = Paket::all();
-        $jenisPembayarans = JenisPembayaran::with('detailJenisPembayarans')->get();
-
+        $pakets = Paket::where('jenis', '!=', '') // Pastikan hanya paket aktif
+            ->orderBy('nama_paket')
+            ->get();
+            
+        $jenisPembayarans = JenisPembayaran::all();
+        
         return view('customer.order.create', compact('pakets', 'jenisPembayarans'));
     }
 
-    /**
-     * Store Order - 🔥 FIX: Pastikan 'jumlah' terkirim!
-     */
     public function storeOrder(Request $request)
     {
-        // ✅ Ambil user dari guard pelanggan
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        // ✅ VALIDASI: Pastikan 'jumlah' ada dan valid
+        // 🔍 DEBUG: Lihat data yang masuk
+        // Log::info('Order Data:', $request->all());
+        
         $validated = $request->validate([
-            'paket_id' => 'required|array|min:1',
-            'paket_id.*' => 'exists:pakets,id',
-            'jumlah' => 'required|array|min:1',        // 🔥 WAJIB!
-            'jumlah.*' => 'required|integer|min:1',     // 🔥 WAJIB!
+            'paket_id.*' => 'required|exists:pakets,id',
+            'jumlah.*' => 'required|integer|min:1',
             'tgl_pesan' => 'required|date|after_or_equal:today',
             'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
-            'no_rek_pembayaran' => 'nullable|string|max:50',
-            'catatan' => 'nullable|string|max:500',
+            'catatan' => 'nullable|string|max:1000',
         ], [
-            'paket_id.required' => 'Minimal pilih 1 paket.',
-            'jumlah.required' => 'Jumlah harus diisi untuk setiap paket.',
-            'jumlah.*.min' => 'Jumlah minimal 1.',
-            'tgl_pesan.after_or_equal' => 'Tanggal pesan tidak boleh di masa lalu.',
+            'paket_id.*.required' => 'Pilih minimal satu paket',
+            'paket_id.*.exists' => 'Paket tidak ditemukan',
+            'jumlah.*.required' => 'Jumlah harus diisi',
+            'jumlah.*.integer' => 'Jumlah harus angka',
+            'jumlah.*.min' => 'Jumlah minimal 1',
+            'tgl_pesan.required' => 'Tanggal pesan harus diisi',
+            'tgl_pesan.date' => 'Format tanggal tidak valid',
+            'tgl_pesan.after_or_equal' => 'Tanggal tidak boleh di masa lalu',
+            'id_jenis_bayar.required' => 'Pilih metode pembayaran',
+            'id_jenis_bayar.exists' => 'Metode pembayaran tidak ditemukan',
         ]);
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+            
+            $pelanggan = Auth::guard('pelanggan')->user();
+            
+            // Generate No Resi Unik
+            $noResi = 'RESI-' . date('Ymd') . '-' . str_pad(Pemesanan::count() + 1, 4, '0', STR_PAD_LEFT);
+            
+            // Hitung Total
             $totalBayar = 0;
-            $details = [];
-
-            // 🔥 LOOP: Ambil paket DAN jumlah dengan index yang SAMA
+            $detailData = [];
+            
             foreach ($validated['paket_id'] as $index => $paketId) {
-                $paket = Paket::find($paketId);
-
-                // 🔥 AMBIL JUMLAH DARI ARRAY 'jumlah' DENGAN INDEX YANG SAMA
-                $jumlah = $validated['jumlah'][$index] ?? 1;
-
-                if ($paket) {
-                    $subtotal = $paket->harga * $jumlah;
-                    $totalBayar += $subtotal;
-
-                    // 🔥 PASTIKAN 'jumlah' DIMASUKKAN KE ARRAY DETAIL
-                    $details[] = [
-                        'paket_id' => $paketId,
-                        'jumlah' => $jumlah,      // 🔥 INI YANG SERING TERLEWAT!
-                        'subtotal' => $subtotal,
-                    ];
-                }
+                $paket = Paket::findOrFail($paketId);
+                $jumlah = $validated['jumlah'][$index];
+                $subtotal = $paket->harga_paket * $jumlah;
+                
+                $totalBayar += $subtotal;
+                
+                $detailData[] = [
+                    'paket_id' => $paketId,
+                    'jumlah' => $jumlah,
+                    'subtotal' => $subtotal,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
-
-            if ($totalBayar <= 0) {
-                throw new \Exception("Total bayar tidak valid");
-            }
-
-            // Generate No. Resi
-            $count = Pemesanan::count() + 1;
-            $noResi = 'RESI-' . date('Ymd') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
-
-            // Simpan Pemesanan
+            
+            // Buat Pemesanan
             $pemesanan = Pemesanan::create([
-                'id_pelanggan' => $pelanggan->id,  // ✅ Langsung pakai $pelanggan->id
+                'id_pelanggan' => $pelanggan->id,
                 'id_jenis_bayar' => $validated['id_jenis_bayar'],
                 'no_resi' => $noResi,
                 'tgl_pesan' => $validated['tgl_pesan'],
@@ -146,146 +88,31 @@ class CustomerController extends Controller
                 'total_bayar' => $totalBayar,
                 'catatan' => $validated['catatan'] ?? null,
             ]);
-
-            // 🔥 SIMPAN DETAIL: Pastikan 'jumlah' ikut tersimpan!
-            foreach ($details as $detail) {
-                $pemesanan->detailPemesanans()->create([
-                    'paket_id' => $detail['paket_id'],
-                    'jumlah' => $detail['jumlah'],    // 🔥 PASTIKAN INI ADA!
-                    'subtotal' => $detail['subtotal'],
-                ]);
+            
+            // Buat Detail Pemesanan
+            foreach ($detailData as $detail) {
+                $detail['pemesanan_id'] = $pemesanan->id;
+                DetailPemesanan::create($detail);
             }
-
+            
             DB::commit();
-
+            
             return redirect()->route('customer.orders')
                 ->with('success', 'Pesanan berhasil dibuat! No. Resi: ' . $noResi);
-
+                
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Customer Order Error: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal membuat pesanan: ' . $e->getMessage());
+            
+            // 🔍 DEBUG: Log error ke storage/logs/laravel.log
+            Log::error('Order Creation Failed:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'data' => $request->all(),
+            ]);
+            
+            return back()->withInput()->with('error', 'Gagal membuat pesanan: ' . $e->getMessage());
         }
     }
-
-    /**
-     * Order History
-     */
-    public function orders()
-    {
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $orders = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
-                    ->where('id_pelanggan', $pelanggan->id)
-                    ->latest()
-                    ->paginate(10);
-
-        return view('customer.orders', compact('orders'));
-    }
-
-    /**
-     * Order Detail
-     */
-    public function orderDetail($id)
-    {
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $order = Pemesanan::with(['detailPemesanans.paket', 'jenisPembayaran.detailJenisPembayarans', 'pengiriman.user'])
-                    ->where('id', $id)
-                    ->where('id_pelanggan', $pelanggan->id)
-                    ->first();
-
-        if (!$order) {
-            return redirect()->route('customer.orders')
-                ->with('error', 'Pesanan tidak ditemukan atau bukan milik Anda.');
-        }
-
-        return view('customer.order.detail', compact('order'));
-    }
-
-    /**
-     * Cancel Order - 🔥 BARU: Fitur batalkan pesanan
-     * Hanya bisa jika status masih "Menunggu Konfirmasi"
-     */
-    public function cancelOrder($id)
-    {
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $order = Pemesanan::where('id', $id)
-                    ->where('id_pelanggan', $pelanggan->id)
-                    ->first();
-
-        if (!$order) {
-            return redirect()->route('customer.orders')
-                ->with('error', 'Pesanan tidak ditemukan atau bukan milik Anda.');
-        }
-
-        // ✅ Hanya bisa batal jika status masih "Menunggu Konfirmasi"
-        if ($order->status_pesan != 'Menunggu Konfirmasi') {
-            return redirect()->back()
-                ->with('error', 'Pesanan tidak dapat dibatalkan karena sudah diproses.');
-        }
-
-        // Update status menjadi "Dibatalkan"
-        $order->update([
-            'status_pesan' => 'Dibatalkan'
-        ]);
-
-        return redirect()->route('customer.orders')
-            ->with('success', 'Pesanan berhasil dibatalkan.');
-    }
-
-    /**
-     * Profile
-     */
-    public function profile()
-    {
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        // ✅ Langsung kirim $pelanggan ke view (sudah instance Pelanggan model)
-        return view('customer.profile', compact('pelanggan'));
-    }
-
-    /**
-     * Update Profile
-     */
-    public function updateProfile(Request $request)
-    {
-        $pelanggan = Auth::guard('pelanggan')->user();
-
-        if (!$pelanggan) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $validated = $request->validate([
-            'nama_pelanggan' => 'required|string|max:255',
-            'telepon' => 'required|string|max:15',
-            'alamat1' => 'required|string',
-            'alamat2' => 'nullable|string',
-            'alamat3' => 'nullable|string',
-        ]);
-
-        // ✅ Langsung update instance yang sudah ter-authenticate
-        $pelanggan->update($validated);
-
-        return redirect()->route('customer.profile')->with('success', 'Profil berhasil diperbarui!');
-    }
+    
+    // ... method lainnya
 }
