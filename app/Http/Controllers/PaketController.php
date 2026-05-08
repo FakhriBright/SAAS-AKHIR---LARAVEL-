@@ -28,49 +28,42 @@ class PaketController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'nama_paket' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
-            'jumlah_pax' => 'required|integer|min:1',
-            'jenis' => 'required|in:Prasmanan,Meal Box,Snack Box,Tumpeng',
-            'kategori' => 'nullable|string|max:255',
-            'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ], [
-            'jenis.in' => 'Jenis paket harus salah satu dari: Prasmanan, Meal Box, Snack Box, atau Tumpeng',
-            'nama_paket.required' => 'Nama paket harus diisi',
-            'deskripsi.required' => 'Deskripsi harus diisi',
-            'harga.required' => 'Harga harus diisi',
-            'harga.numeric' => 'Harga harus berupa angka',
-            'jumlah_pax.required' => 'Jumlah pax harus diisi',
-            'jumlah_pax.integer' => 'Jumlah pax harus berupa angka',
-            'jumlah_pax.min' => 'Jumlah pax minimal 1',
-        ]);
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'nama_paket' => 'required|string|max:255',
+        'deskripsi' => 'required|string',
+        'harga_paket' => 'required|numeric|min:0',
+        'jumlah_pax' => 'required|integer|min:1',
+        'jenis' => 'required|string|max:50',
+        'kategori' => 'nullable|string|max:255',  // ✅ FLEKSIBEL: Bisa input apa saja
+        'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ], [
+        'harga_paket.required' => 'Harga paket harus diisi',
+        // ... error messages lainnya
+    ]);
 
-        // Handle file uploads
-        $foto1 = $request->file('foto1') ? $request->file('foto1')->store('pakets', 'public') : null;
-        $foto2 = $request->file('foto2') ? $request->file('foto2')->store('pakets', 'public') : null;
-        $foto3 = $request->file('foto3') ? $request->file('foto3')->store('pakets', 'public') : null;
+    // Handle file uploads
+    $foto1 = $request->file('foto1') ? $request->file('foto1')->store('pakets', 'public') : null;
+    $foto2 = $request->file('foto2') ? $request->file('foto2')->store('pakets', 'public') : null;
+    $foto3 = $request->file('foto3') ? $request->file('foto3')->store('pakets', 'public') : null;
 
-        Paket::create([
-            'nama_paket' => $validated['nama_paket'],
-            'deskripsi' => $validated['deskripsi'],
-            'harga' => $validated['harga'],
-            'jumlah_pax' => $validated['jumlah_pax'],
-            'jenis' => $validated['jenis'],
-            'kategori' => $validated['kategori'],
-            'foto1' => $foto1,
-            'foto2' => $foto2,
-            'foto3' => $foto3,
-        ]);
+    Paket::create([
+        'nama_paket' => $validated['nama_paket'],
+        'deskripsi' => $validated['deskripsi'],
+        'harga_paket' => $validated['harga_paket'],
+        'jumlah_pax' => $validated['jumlah_pax'],
+        'jenis' => $validated['jenis'],
+        'kategori' => $validated['kategori'],  // ✅ Sekarang bisa "Prewedding", "Corporate", dll
+        'foto1' => $foto1,
+        'foto2' => $foto2,
+        'foto3' => $foto3,
+    ]);
 
-        return redirect()->route('pakets.index')
-            ->with('success', 'Paket catering berhasil ditambahkan!');
-    }
+    return redirect()->route('pakets.index')->with('success', 'Paket catering berhasil ditambahkan!');
+}
 
     /**
      * Display the specified resource.
@@ -96,22 +89,23 @@ class PaketController extends Controller
         $validated = $request->validate([
             'nama_paket' => 'required|string|max:255',
             'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
+            'harga_paket' => 'required|numeric|min:0',
             'jumlah_pax' => 'required|integer|min:1',
-            'jenis' => 'required|in:Prasmanan,Meal Box,Snack Box,Tumpeng',
+            'jenis' => 'required|string|max:50',
             'kategori' => 'nullable|string|max:255',
             'foto1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'foto3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
-            'jenis.in' => 'Jenis paket harus salah satu dari: Prasmanan, Meal Box, Snack Box, atau Tumpeng',
+            'harga_paket.required' => 'Harga paket harus diisi',
+            'harga_paket.numeric' => 'Harga harus berupa angka',
+            'harga_paket.min' => 'Harga tidak boleh negatif',
             'nama_paket.required' => 'Nama paket harus diisi',
             'deskripsi.required' => 'Deskripsi harus diisi',
-            'harga.required' => 'Harga harus diisi',
-            'harga.numeric' => 'Harga harus berupa angka',
             'jumlah_pax.required' => 'Jumlah pax harus diisi',
             'jumlah_pax.integer' => 'Jumlah pax harus berupa angka',
             'jumlah_pax.min' => 'Jumlah pax minimal 1',
+            'jenis.required' => 'Jenis paket harus dipilih',
         ]);
 
         // Handle file uploads - keep old files if no new upload
@@ -137,7 +131,7 @@ class PaketController extends Controller
         $paket->update([
             'nama_paket' => $validated['nama_paket'],
             'deskripsi' => $validated['deskripsi'],
-            'harga' => $validated['harga'],
+            'harga_paket' => $validated['harga_paket'],
             'jumlah_pax' => $validated['jumlah_pax'],
             'jenis' => $validated['jenis'],
             'kategori' => $validated['kategori'],

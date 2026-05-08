@@ -13,7 +13,7 @@ class Paket extends Model
     protected $fillable = [
         'nama_paket',
         'deskripsi',
-        'harga',
+        'harga_paket',  // ✅ Harus ada ini
         'jumlah_pax',      // ✅ Pakai 'jumlah_pax', BUKAN 'jumlah_porsi'
         'jenis',
         'kategori',

@@ -10,12 +10,18 @@ return new class extends Migration
     {
         Schema::create('pakets', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_paket', 100);
-            $table->text('deskripsi')->nullable();
-            $table->decimal('harga', 15, 2);
+            $table->string('nama_paket', 50);
+            
+            // ✅ UBAH ENUM JADI STRING AGAR AMAN DI POSTGRES (NEON)
+            // Validasi nilai tetap bisa kita atur di Controller/Model
+            $table->string('jenis', 50); 
+            
+            // Enum kategori aman karena jarang diubah strukturnya
+            $table->enum('kategori', ['Pernikahan', 'Selamatan', 'Ulang Tahun', 'Studi Tour', 'Rapat'])->nullable(); 
+            
             $table->integer('jumlah_pax');
-            $table->enum('jenis', ['Prasmanan', 'Box']);
-            $table->text('kategori')->nullable(); // Pisahkan dengan koma
+            $table->integer('harga_paket'); // Sesuaikan dengan gambar tugas (int)
+            $table->text('deskripsi')->nullable();
             $table->string('foto1', 255)->nullable();
             $table->string('foto2', 255)->nullable();
             $table->string('foto3', 255)->nullable();

@@ -14,7 +14,16 @@ return new class extends Migration
             $table->foreignId('id_jenis_bayar')->constrained('jenis_pembayarans')->onDelete('cascade');
             $table->string('no_resi', 30)->unique();
             $table->dateTime('tgl_pesan');
-            $table->enum('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir', 'Selesai'])->default('Menunggu Konfirmasi');
+            
+            // ✅ ENUM LENGKAP (Termasuk 'Dibatalkan')
+            $table->enum('status_pesan', [
+                'Menunggu Konfirmasi',
+                'Sedang Diproses',
+                'Menunggu Kurir',
+                'Selesai',
+                'Dibatalkan'
+            ])->default('Menunggu Konfirmasi');
+            
             $table->decimal('total_bayar', 15, 2);
             $table->text('catatan')->nullable();
             $table->timestamps();
