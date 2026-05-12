@@ -3,203 +3,173 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pemesanan;
-use App\Models\DetailPemesanan;
 use App\Models\Pelanggan;
-use App\Models\Paket;
 use App\Models\JenisPembayaran;
+use App\Models\Paket;
+use App\Models\DetailPemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PemesananController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $pemesanans = Pemesanan::with(['pelanggan', 'jenisPembayaran'])
+        $pemesanans = Pemesanan::with(['pelanggan', 'jenisPembayaran', 'detailPemesanans.paket'])
             ->latest()
             ->paginate(10);
-        
+
         return view('pemesanans.index', compact('pemesanans'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        $pelanggans = Pelanggan::all();
-        $pakets = Paket::all();
+        // ✅ Ambil data untuk dropdown
+        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get();
         $jenisPembayarans = JenisPembayaran::all();
-        
-        return view('pemesanans.create', compact('pelanggans', 'pakets', 'jenisPembayarans'));
+        $pakets = Paket::where('jenis', '!=', '')->orderBy('nama_paket')->get();
+
+        return view('pemesanans.create', compact('pelanggans', 'jenisPembayarans', 'pakets'));
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        // ✅ VALIDASI: Pastikan 'jumlah' ada dan valid
         $validated = $request->validate([
-            'id_pelanggan' => 'required|exists:pelanggans,id',
-            'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
-            'paket_id' => 'required|array|min:1',
-            'paket_id.*' => 'exists:pakets,id',
-            'jumlah' => 'required|array|min:1',      // ✅ WAJIB ADA
-            'jumlah.*' => 'required|integer|min:1',   // ✅ WAJIB ADA
-            'tgl_pesan' => 'required|date',
-            'catatan' => 'nullable|string|max:255',
+            'id_pelanggan'     => 'required|exists:pelanggans,id',
+            'id_jenis_bayar'   => 'required|exists:jenis_pembayarans,id',
+            'tgl_pesan'        => 'required|date|after_or_equal:today',
+            'catatan'          => 'nullable|string|max:1000',
+            'paket_id'         => 'required|array|min:1',
+            'paket_id.*'       => 'required|exists:pakets,id',
+            'jumlah'           => 'required|array|min:1',
+            'jumlah.*'         => 'required|integer|min:1',
+        ], [
+            'paket_id.required' => 'Pilih minimal satu paket',
+            'jumlah.required'   => 'Isi jumlah untuk setiap paket',
+            'jumlah.*.min'      => 'Jumlah minimal 1',
         ]);
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+
+            // Generate No. Resi Unik
+            $noResi = 'RESI-' . date('Ymd') . '-' . str_pad(Pemesanan::count() + 1, 4, '0', STR_PAD_LEFT);
+
             $totalBayar = 0;
-            $details = [];
+            $detailData = [];
 
-            // ✅ LOOP: Ambil paket DAN jumlah dengan index yang sama
+            // Hitung total & siapkan detail
             foreach ($validated['paket_id'] as $index => $paketId) {
-                $paket = Paket::find($paketId);
-                
-                // ✅ AMBIL JUMLAH DARI ARRAY 'jumlah' DENGAN INDEX YANG SAMA
-                $jumlah = $validated['jumlah'][$index] ?? 1;
-                
-                if ($paket) {
-                    $subtotal = $paket->harga * $jumlah;
-                    $totalBayar += $subtotal;
-                    
-                    // ✅ PASTIKAN 'jumlah' DIMASUKKAN KE ARRAY DETAIL
-                    $details[] = [
-                        'paket_id' => $paketId,
-                        'jumlah' => $jumlah,    // ✅ INI YANG SERING TERLEWAT!
-                        'subtotal' => $subtotal,
-                    ];
-                }
+                $paket = Paket::findOrFail($paketId);
+                $qty   = $validated['jumlah'][$index] ?? 1;
+                $subtotal = $paket->harga_paket * $qty;
+
+                $totalBayar += $subtotal;
+
+                $detailData[] = [
+                    'paket_id'   => $paketId,
+                    'jumlah'     => $qty,
+                    'subtotal'   => $subtotal,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
 
-            if ($totalBayar <= 0) {
-                throw new \Exception("Total bayar tidak valid");
-            }
-
-            // Generate No. Resi
-            $count = Pemesanan::count() + 1;
-            $noResi = 'RESI-' . date('Ymd') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
-
-            // Simpan Pemesanan
+            // Simpan data utama pemesanan
             $pemesanan = Pemesanan::create([
-                'id_pelanggan' => $validated['id_pelanggan'],
+                'id_pelanggan'   => $validated['id_pelanggan'],
                 'id_jenis_bayar' => $validated['id_jenis_bayar'],
-                'no_resi' => $noResi,
-                'tgl_pesan' => $validated['tgl_pesan'],
-                'status_pesan' => 'Menunggu Konfirmasi',
-                'total_bayar' => $totalBayar,
-                'catatan' => $validated['catatan'] ?? null,
+                'no_resi'        => $noResi,
+                'tgl_pesan'      => $validated['tgl_pesan'],
+                'status_pesan'   => 'Menunggu Konfirmasi',
+                'total_bayar'    => $totalBayar,
+                'catatan'        => $validated['catatan'] ?? null,
             ]);
 
-            // ✅ SIMPAN DETAIL: Pastikan 'jumlah' ikut tersimpan
-            foreach ($details as $detail) {
-                $pemesanan->detailPemesanans()->create([
-                    'paket_id' => $detail['paket_id'],
-                    'jumlah' => $detail['jumlah'],  // ✅ PASTIKAN INI ADA
-                    'subtotal' => $detail['subtotal'],
-                ]);
+            // Simpan detail paket
+            foreach ($detailData as $detail) {
+                $detail['pemesanan_id'] = $pemesanan->id;
+                DetailPemesanan::create($detail);
             }
 
             DB::commit();
 
             return redirect()->route('pemesanans.index')
-                ->with('success', 'Pesanan berhasil dibuat! No. Resi: ' . $noResi);
+                ->with('success', '✅ Pesanan berhasil dibuat! No. Resi: ' . $noResi);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            Log::error('Admin Create Order Failed: ' . $e->getMessage());
+            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(Pemesanan $pemesanan)
     {
         $pemesanan->load(['pelanggan', 'jenisPembayaran', 'detailPemesanans.paket']);
         return view('pemesanans.show', compact('pemesanan'));
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Pemesanan $pemesanan)
     {
-        $pelanggans = Pelanggan::all();
-        $pakets = Paket::all();
+        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get();
         $jenisPembayarans = JenisPembayaran::all();
+        $pakets = Paket::where('jenis', '!=', '')->orderBy('nama_paket')->get();
         $pemesanan->load('detailPemesanans');
-        return view('pemesanans.edit', compact('pemesanan', 'pelanggans', 'pakets', 'jenisPembayarans'));
+
+        return view('pemesanans.edit', compact('pemesanan', 'pelanggans', 'jenisPembayarans', 'pakets'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Pemesanan $pemesanan)
     {
         $validated = $request->validate([
-            'id_pelanggan' => 'required|exists:pelanggans,id',
-            'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
-            'paket_id' => 'required|array|min:1',
-            'paket_id.*' => 'exists:pakets,id',
-            'jumlah' => 'required|array|min:1',
-            'jumlah.*' => 'required|integer|min:1',
-            'tgl_pesan' => 'required|date',
-            'catatan' => 'nullable|string|max:255',
-            'status_pesan' => 'required|in:Menunggu Konfirmasi,Sedang Diproses,Menunggu Kurir,Selesai',
+            'status_pesan' => 'required|string',
+            'catatan_admin' => 'nullable|string',
         ]);
 
+        $pemesanan->update($validated);
+        return back()->with('success', '✅ Status pesanan berhasil diupdate.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Pemesanan $pemesanan)
+    {
         DB::beginTransaction();
         try {
-            // Hapus detail lama
             $pemesanan->detailPemesanans()->delete();
-
-            $totalBayar = 0;
-            $details = [];
-
-            foreach ($validated['paket_id'] as $index => $paketId) {
-                $paket = Paket::find($paketId);
-                $jumlah = $validated['jumlah'][$index] ?? 1;
-                
-                if ($paket) {
-                    $subtotal = $paket->harga * $jumlah;
-                    $totalBayar += $subtotal;
-                    
-                    $details[] = [
-                        'paket_id' => $paketId,
-                        'jumlah' => $jumlah,
-                        'subtotal' => $subtotal,
-                    ];
-                }
-            }
-
-            if ($totalBayar <= 0) {
-                throw new \Exception("Total bayar tidak valid");
-            }
-
-            $pemesanan->update([
-                'id_pelanggan' => $validated['id_pelanggan'],
-                'id_jenis_bayar' => $validated['id_jenis_bayar'],
-                'tgl_pesan' => $validated['tgl_pesan'],
-                'status_pesan' => $validated['status_pesan'],
-                'total_bayar' => $totalBayar,
-                'catatan' => $validated['catatan'] ?? null,
-            ]);
-
-            foreach ($details as $detail) {
-                $pemesanan->detailPemesanans()->create([
-                    'paket_id' => $detail['paket_id'],
-                    'jumlah' => $detail['jumlah'],
-                    'subtotal' => $detail['subtotal'],
-                ]);
-            }
-
+            $pemesanan->delete();
             DB::commit();
-            return redirect()->route('pemesanans.index')->with('success', 'Pesanan berhasil diperbarui!');
-
+            return back()->with('success', '✅ Pesanan berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui: ' . $e->getMessage());
+            return back()->with('error', '❌ Gagal menghapus pesanan.');
         }
     }
 
-    public function destroy(Pemesanan $pemesanan)
-    {
-        $pemesanan->delete();
-        return redirect()->route('pemesanans.index')->with('success', 'Pesanan berhasil dihapus!');
-    }
-
+    /**
+     * Download PDF Invoice.
+     */
     public function downloadPDF(Pemesanan $pemesanan)
     {
         $pemesanan->load(['pelanggan', 'jenisPembayaran', 'detailPemesanans.paket']);

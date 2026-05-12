@@ -1,137 +1,80 @@
 @extends('layouts.customer')
 
-@section('title', 'Profil Saya - Fakhri Kitchen')
+@section('title', 'Profile Saya')
 
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            {{-- Header --}}
-            <div class="text-center mb-4">
-                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-                    <i class="bi bi-person fs-1" style="color: var(--primary); font-size: 3rem !important;"></i>
-                </div>
-                <h2 class="fw-bold mb-1" style="color: var(--primary-dark);">Profil Saya</h2>
-                <p class="text-muted">Kelola informasi pribadi Anda</p>
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ route('customer.dashboard') }}" class="btn btn-fk-outline me-3"><i class="bi bi-arrow-left"></i></a>
+                <h2 class="fw-bold mb-0">Profile Saya</h2>
             </div>
 
             @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+            <div class="alert alert-success alert-dismissible fade show">
                 <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             @endif
 
-            <div class="card fk-card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h5 class="mb-0 fw-bold" style="color: var(--primary-dark);">
-                        <i class="bi bi-person-badge me-2"></i>Informasi Pribadi
-                    </h5>
-                </div>
-                <div class="card-body p-4 p-md-5">
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show">
+                <ul class="mb-0 ps-3">@foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach</ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+
+            <div class="card fk-card">
+                <div class="card-body p-4">
                     <form action="{{ route('customer.profile.update') }}" method="POST">
                         @csrf @method('PUT')
-                        
-                        <div class="row g-4">
+
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    <i class="bi bi-person me-1"></i>Nama Lengkap
-                                </label>
-                                <input type="text" name="nama_pelanggan" class="form-control form-control-lg" 
-                                       value="{{ old('nama_pelanggan', $pelanggan->nama_pelanggan) }}" required>
+                                <label class="form-label fw-medium">Nama Lengkap *</label>
+                                <input type="text" name="nama_pelanggan" class="form-control @error('nama_pelanggan') is-invalid @enderror" value="{{ old('nama_pelanggan', $pelanggan->nama_pelanggan) }}" required>
+                                @error('nama_pelanggan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    <i class="bi bi-envelope me-1"></i>Email
-                                </label>
-                                <input type="email" class="form-control form-control-lg bg-light" 
-                                       value="{{ $pelanggan->email }}" disabled>
-                                <small class="text-muted">Email tidak dapat diubah</small>
+                                <label class="form-label fw-medium">Email *</label>
+                                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $pelanggan->email) }}" required>
+                                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    <i class="bi bi-telephone me-1"></i>Nomor Telepon
-                                </label>
-                                <input type="tel" name="telepon" class="form-control form-control-lg" 
-                                       value="{{ old('telepon', $pelanggan->telepon) }}" required 
-                                       placeholder="081234567890">
+                                <label class="form-label fw-medium">Telepon *</label>
+                                <input type="text" name="telepon" class="form-control @error('telepon') is-invalid @enderror" value="{{ old('telepon', $pelanggan->telepon) }}" required>
+                                @error('telepon')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            
                             <div class="col-12">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    <i class="bi bi-geo-alt me-1"></i>Alamat Lengkap
-                                </label>
-                                <textarea name="alamat1" class="form-control" rows="2" required 
-                                          placeholder="Jl. Contoh No. 123, Kota...">{{ old('alamat1', $pelanggan->alamat1) }}</textarea>
+                                <label class="form-label fw-medium">Alamat Lengkap *</label>
+                                <input type="text" name="alamat1" class="form-control @error('alamat1') is-invalid @enderror mb-2" value="{{ old('alamat1', $pelanggan->alamat1) }}" placeholder="Jalan, No. Rumah" required>
+                                <input type="text" name="alamat2" class="form-control @error('alamat2') is-invalid @enderror mb-2" value="{{ old('alamat2', $pelanggan->alamat2) }}" placeholder="Kecamatan, Kelurahan">
+                                <input type="text" name="alamat3" class="form-control @error('alamat3') is-invalid @enderror" value="{{ old('alamat3', $pelanggan->alamat3) }}" placeholder="Kota, Kode Pos">
+                                @error('alamat1')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
-                            
+
+                            <hr class="my-4">
+                            <h6 class="fw-bold text-muted mb-3">Ganti Password (Opsional)</h6>
+
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    Kelurahan/Kecamatan
-                                </label>
-                                <input type="text" name="alamat2" class="form-control" 
-                                       value="{{ old('alamat2', $pelanggan->alamat2) }}" 
-                                       placeholder="Kecamatan">
+                                <label class="form-label fw-medium">Password Baru</label>
+                                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Kosongkan jika tidak ingin ganti">
+                                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-uppercase text-muted">
-                                    Kota/Kabupaten
-                                </label>
-                                <input type="text" name="alamat3" class="form-control" 
-                                       value="{{ old('alamat3', $pelanggan->alamat3) }}" 
-                                       placeholder="Kota">
+                                <label class="form-label fw-medium">Konfirmasi Password</label>
+                                <input type="password" name="password_confirmation" class="form-control" placeholder="Ulangi password baru">
                             </div>
                         </div>
-                        
-                        <div class="d-flex justify-content-end gap-3 mt-5">
-                            <a href="{{ route('customer.dashboard') }}" class="btn btn-fk-outline btn-lg px-4">
-                                <i class="bi bi-x-circle me-2"></i>Batal
-                            </a>
-                            <button type="submit" class="btn btn-fk-primary btn-lg px-4">
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-fk-primary flex-grow-1">
                                 <i class="bi bi-check-circle me-2"></i>Simpan Perubahan
                             </button>
+                            <a href="{{ route('customer.dashboard') }}" class="btn btn-fk-outline">Batal</a>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            {{-- Additional Info Cards --}}
-            <div class="row g-4 mt-4">
-                <div class="col-md-6">
-                    <div class="card fk-card border-0 shadow-sm h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                                    <i class="bi bi-shield-check text-success fs-4"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-0">Akun Terverifikasi</h6>
-                                    <small class="text-muted">Data Anda aman</small>
-                                </div>
-                            </div>
-                            <p class="text-muted small mb-0">Informasi Anda terlindungi dan hanya digunakan untuk keperluan pemesanan.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="card fk-card border-0 shadow-sm h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                                    <i class="bi bi-award text-info fs-4"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-0">Member Sejak</h6>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($pelanggan->created_at)->format('d F Y') }}</small>
-                                </div>
-                            </div>
-                            <p class="text-muted small mb-0">Terima kasih telah menjadi pelanggan setia Fakhri Kitchen.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

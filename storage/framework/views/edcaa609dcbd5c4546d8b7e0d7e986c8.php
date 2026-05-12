@@ -2,6 +2,49 @@
 
 <?php $__env->startSection('content'); ?>
 <div class="container">
+    
+    <?php if($errors->any()): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Validasi Gagal:</h6>
+        <ul class="mb-0 ps-3">
+            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <li><?php echo e($error); ?></li>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    
+    <?php if(session('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        <i class="bi bi-x-circle me-2"></i><?php echo e(session('error')); ?>
+
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center mb-4">
+                <a href="<?php echo e(route('customer.orders')); ?>" class="btn btn-fk-outline me-3"><i class="bi bi-arrow-left"></i></a>
+                <div>
+                    <h2 class="fw-bold mb-1">Buat Pesanan Baru</h2>
+                    <p class="text-muted mb-0">Pilih paket dan lengkapi data pemesanan Anda</p>
+                </div>
+            </div>
+
+            <form action="<?php echo e(route('customer.order.store')); ?>" method="POST" id="orderForm">
+                <?php echo csrf_field(); ?>
+                <!-- ... rest of the form sama seperti sebelumnya ... -->
+            </form>
+        </div>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-9">
             <div class="d-flex align-items-center mb-4">

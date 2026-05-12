@@ -1,184 +1,86 @@
 @extends('layouts.customer')
 
-@section('title', 'Riwayat Pesanan - Fakhri Kitchen')
+@section('title', 'Pemesanan')
 
 @section('content')
-<div class="container-fluid px-0">
-        {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1" style="color: var(--primary-dark);">
-                <i class="bi bi-clock-history me-2"></i>Riwayat Pesanan
-            </h2>
-            <p class="text-muted mb-0">Lihat semua pesanan yang pernah Anda buat</p>
+            <h2 class="fw-bold mb-1">Pemesanan</h2>
+            <p class="text-muted mb-0">Kelola semua pesanan catering Anda</p>
         </div>
-        <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary btn-lg shadow-sm">
+        <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary">
             <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
         </a>
     </div>
 
-    {{-- Filter Card - Enhanced --}}
-    <div class="card fk-card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-6">
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" id="searchOrder" 
-                               placeholder="Cari no. resi...">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-lg" id="filterStatus">
-                        <option value="">Semua Status</option>
-                        <option value="Menunggu Konfirmasi">⏳ Menunggu Konfirmasi</option>
-                        <option value="Sedang Diproses">⚙️ Sedang Diproses</option>
-                        <option value="Menunggu Kurir">🚚 Menunggu Kurir</option>
-                        <option value="Selesai">✅ Selesai</option>
-                        <option value="Dibatalkan">❌ Dibatalkan</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-fk-outline w-100 btn-lg" onclick="resetFilter()">
-                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Orders List --}}
-    <div class="card fk-card border-0 shadow-sm">
+    @if($orders->count() > 0)
+    <div class="card fk-card">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background: linear-gradient(135deg, var(--cream) 0%, #fff 100%);">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th class="ps-4 py-3 small text-uppercase text-muted fw-semibold">No. Resi</th>
-                            <th class="py-3 small text-uppercase text-muted fw-semibold">Tanggal</th>
-                            <th class="py-3 small text-uppercase text-muted fw-semibold">Paket</th>
-                            <th class="py-3 small text-uppercase text-muted fw-semibold">Metode Bayar</th>
-                            <th class="py-3 small text-uppercase text-muted fw-semibold">Total</th>
-                            <th class="py-3 small text-uppercase text-muted fw-semibold">Status</th>
-                            <th class="pe-4 text-end py-3 small text-uppercase text-muted fw-semibold">Aksi</th>
+                            <th class="ps-4">No. Resi</th>
+                            <th>Tanggal</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="pe-4 text-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($orders as $order)
-                        <tr class="order-row border-bottom-light" data-status="{{ $order->status_pesan }}">
-                            <td class="ps-4 py-3">
-                                <span class="fw-bold" style="color: var(--primary);">{{ $order->no_resi }}</span>
+                        @foreach($orders as $order)
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ $order->no_resi }}</td>
+                            <td>{{ \Carbon\Carbon::parse($order->tgl_pesan)->format('d/m/Y') }}</td>
+                            <td class="fw-bold text-success">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</td>
+                            <td>
+                                @php
+                                $statusClass = match($order->status_pesan) {
+                                    'Menunggu Konfirmasi' => 'warning',
+                                    'Sedang Diproses' => 'info',
+                                    'Menunggu Kurir' => 'primary',
+                                    'Selesai' => 'success',
+                                    'Dibatalkan' => 'danger',
+                                    default => 'secondary'
+                                };
+                                @endphp
+                                <span class="badge bg-{{ $statusClass }}">{{ $order->status_pesan }}</span>
                             </td>
-                            <td class="py-3">
-                                <div>
-                                    <div class="fw-medium">{{ \Carbon\Carbon::parse($order->tgl_pesan)->format('d/m/Y') }}</div>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($order->tgl_pesan)->diffForHumans() }}</small>
-                                </div>
-                            </td>
-                            <td class="py-3">
-                                <div class="fw-medium">{{ $order->detailPemesanans->first()->paket->nama_paket ?? '-' }}</div>
-                                @if($order->detailPemesanans->count() > 1)
-                                    <small class="text-muted">+{{ $order->detailPemesanans->count() - 1 }} paket lain</small>
-                                @endif
-                            </td>
-                            <td class="py-3">
-                                <small class="text-muted">{{ $order->jenisPembayaran->metode_pembayaran ?? '-' }}</small>
-                            </td>
-                            <td class="py-3">
-                                <span class="fw-bold text-success" style="font-size: 1.1rem;">
-                                    Rp {{ number_format($order->total_bayar, 0, ',', '.') }}
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                @if($order->status_pesan == 'Menunggu Konfirmasi')
-                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
-                                        <i class="bi bi-hourglass-split me-1"></i>Menunggu
-                                    </span>
-                                @elseif($order->status_pesan == 'Sedang Diproses')
-                                    <span class="badge bg-info text-dark px-3 py-2 rounded-pill">
-                                        <i class="bi bi-gear me-1"></i>Diproses
-                                    </span>
-                                @elseif($order->status_pesan == 'Menunggu Kurir')
-                                    <span class="badge bg-secondary px-3 py-2 rounded-pill">
-                                        <i class="bi bi-truck me-1"></i>Kurir
-                                    </span>
-                                @elseif($order->status_pesan == 'Selesai')
-                                    <span class="badge bg-success px-3 py-2 rounded-pill">
-                                        <i class="bi bi-check-circle me-1"></i>Selesai
-                                    </span>
-                                @elseif($order->status_pesan == 'Dibatalkan')
-                                    <span class="badge bg-danger px-3 py-2 rounded-pill">
-                                        <i class="bi bi-x-circle me-1"></i>Dibatalkan
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="pe-4 text-end py-3">
-                                <div class="d-flex gap-2 justify-content-end">
-                                    <a href="{{ route('customer.order.detail', $order->id) }}" class="btn btn-sm btn-fk-outline rounded-pill px-3">
-                                        <i class="bi bi-eye me-1"></i>Detail
+                            <td class="pe-4 text-end">
+                                <div class="btn-group">
+                                    <a href="{{ route('customer.order.show', $order->id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Detail
                                     </a>
-                                    @if($order->status_pesan == 'Menunggu Konfirmasi')
-                                    <form action="{{ route('customer.order.cancel', $order->id) }}" method="POST" class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" 
-                                                onclick="return confirm('Yakin ingin membatalkan pesanan ini?')">
-                                            <i class="bi bi-x-circle me-1"></i>Batal
+                                    @if(in_array($order->status_pesan, ['Menunggu Konfirmasi']))
+                                    <form action="{{ route('customer.order.cancel', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?')">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x-circle"></i> Batalkan
                                         </button>
                                     </form>
                                     @endif
                                 </div>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="bg-light rounded-circle d-inline-flex p-5 mb-3">
-                                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                                </div>
-                                <h5 class="text-muted mb-2">Belum ada pesanan</h5>
-                                <p class="text-muted mb-4">Mulai pesan catering favorit Anda sekarang!</p>
-                                <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary btn-lg rounded-pill px-4">
-                                    <i class="bi bi-plus-circle me-2"></i>Pesan Sekarang
-                                </a>
-                            </td>
-                        </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        @if($orders->hasPages())
         <div class="card-footer bg-white border-0 py-3">
             {{ $orders->links('pagination::bootstrap-5') }}
         </div>
-        @endif
     </div>
+    @else
+    <div class="text-center py-5">
+        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">Belum ada pesanan</h5>
+        <p class="text-muted mb-4">Mulai pesan paket catering favorit Anda</p>
+        <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Pertama
+        </a>
+    </div>
+    @endif
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.getElementById('searchOrder')?.addEventListener('keyup', function() {
-        let val = this.value.toLowerCase();
-        document.querySelectorAll('.order-row').forEach(r => {
-            r.style.display = r.textContent.toLowerCase().includes(val) ? '' : 'none';
-        });
-    });
-    
-    document.getElementById('filterStatus')?.addEventListener('change', function() {
-        let st = this.value;
-        document.querySelectorAll('.order-row').forEach(r => {
-            r.style.display = (!st || r.dataset.status === st) ? '' : 'none';
-        });
-    });
-    
-    function resetFilter() {
-        document.getElementById('searchOrder').value = '';
-        document.getElementById('filterStatus').value = '';
-        document.querySelectorAll('.order-row').forEach(r => r.style.display = '');
-    }
-</script>
-@endpush

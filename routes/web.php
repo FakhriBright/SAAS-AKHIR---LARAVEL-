@@ -18,7 +18,7 @@ use App\Http\Controllers\DetailJenisPembayaranController;
 |--------------------------------------------------------------------------
 */
 
-// 🏠 LANDING PAGE (Halaman Utama Marketing) - ✅ BISA DIAKSES SIAPA SAJA
+// 🏠 LANDING PAGE (Halaman Utama Marketing)
 Route::get('/', function () {
     return view('landing');
 })->name('home');
@@ -30,12 +30,12 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register'])->name('register.process');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// 🎯 HOME REDIRECT (Untuk yang sudah login dan butuh redirect ke dashboard)
+// 🎯 HOME REDIRECT (Untuk yang sudah login)
 Route::get('/home', function () {
     if (Auth::guard('web')->check()) {
         return redirect()->route('dashboard');
     } elseif (Auth::guard('pelanggan')->check()) {
-        return redirect()->route('customer.dashboard');
+        return redirect()->route('customer.orders'); // Redirect ke Pemesanan, bukan dashboard
     }
     return redirect()->route('home');
 })->name('home.redirect');
@@ -52,17 +52,17 @@ Route::middleware(['auth:web', 'check.role:admin,owner,kurir'])->group(function 
 
     // 🔒 ADMIN ONLY ROUTES
     Route::middleware(['check.role:admin'])->group(function () {
-        // Paket
+        // Paket Management
         Route::resource('pakets', PaketController::class);
 
-        // Pelanggan
+        // Pelanggan Management
         Route::resource('pelanggans', PelangganController::class);
 
-        // Pemesanan
+        // Pemesanan Management
         Route::resource('pemesanans', PemesananController::class);
         Route::get('/pemesanans/{pemesanan}/pdf', [PemesananController::class, 'downloadPDF'])->name('pemesanans.pdf');
 
-        // Pembayaran
+        // Pembayaran Management
         Route::resource('jenis-pembayaran', JenisPembayaranController::class);
         Route::resource('detail-jenis-pembayaran', DetailJenisPembayaranController::class);
     });
@@ -87,20 +87,22 @@ Route::middleware(['auth:pelanggan'])->prefix('customer')->name('customer.')->gr
     // 📖 Katalog Paket
     Route::get('/catalog', [CustomerController::class, 'catalog'])->name('catalog');
 
-    // 🛒 Orders - Riwayat Pesanan
+    // 🛒 Pemesanan - Riwayat & Buat Pesanan (Gabung)
     Route::get('/orders', [CustomerController::class, 'orders'])->name('orders');
 
     // 📝 Buat Pesanan Baru
     Route::get('/order/create', [CustomerController::class, 'createOrder'])->name('order.create');
-    Route::post('/order/store', [CustomerController::class, 'storeOrder'])->name('order.store');
+    Route::post('/order', [CustomerController::class, 'storeOrder'])->name('order.store'); // ✅ FIX: POST /order (bukan /order/store)
 
-    // 🔍 Detail & Batal Pesanan
-    Route::get('/order/{id}', [CustomerController::class, 'orderDetail'])->name('order.detail');
-    Route::delete('/order/{id}/cancel', [CustomerController::class, 'cancelOrder'])->name('order.cancel');
+    // 🔍 Detail Pesanan
+    Route::get('/order/{order}', [CustomerController::class, 'showOrder'])->name('order.show'); // ✅ FIX: {order} model binding
 
-    // 👤 Profile
+    // ❌ Batalkan Pesanan
+    Route::patch('/order/{order}/cancel', [CustomerController::class, 'cancelOrder'])->name('order.cancel'); // ✅ FIX: PATCH method
+
+    // 👤 Profile Management
     Route::get('/profile', [CustomerController::class, 'profile'])->name('profile');
-    Route::put('/profile/update', [CustomerController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('profile.update'); // ✅ FIX: PUT /profile (bukan /profile/update)
 });
 
 /*
