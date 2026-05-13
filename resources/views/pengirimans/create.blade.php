@@ -7,9 +7,11 @@
     <div class="card-modern p-4" style="max-width: 800px; margin: 0 auto;">
         <h4 class="fw-bold mb-4"><i class="bi bi-truck me-2 text-primary"></i>Tambah Pengiriman</h4>
         
+        {{-- ✅ DEBUG: Tampilkan semua error --}}
         @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show">
-            <ul class="mb-0">
+            <h6 class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Validasi Gagal:</h6>
+            <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
                 @endforeach
@@ -18,12 +20,28 @@
         </div>
         @endif
         
+        {{-- ✅ DEBUG: Tampilkan session error --}}
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+        
+        {{-- ✅ DEBUG: Tampilkan session success --}}
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+        
+        {{-- ✅ PASTIKAN FORM ACTION BENAR --}}
         <form action="{{ route('pengirimans.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
             <div class="mb-3">
                 <label class="form-label fw-bold">Pilih Pesanan <span class="text-danger">*</span></label>
-                {{-- ✅ FIX: name="pemesanan_id" --}}
                 <select name="pemesanan_id" class="form-select" required>
                     <option value="">-- Pilih Pesanan --</option>
                     @foreach($pemesanans as $pemesanan)
@@ -32,11 +50,13 @@
                     </option>
                     @endforeach
                 </select>
+                @error('pemesanan_id')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             
             <div class="mb-3">
                 <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
-                {{-- ✅ FIX: name="id_user" --}}
                 <select name="id_user" class="form-select" required>
                     <option value="">-- Pilih Kurir --</option>
                     @foreach($kurirs as $kurir)
@@ -45,35 +65,46 @@
                     </option>
                     @endforeach
                 </select>
+                @error('id_user')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    {{-- ✅ FIX: name="tgl_kirim" --}}
                     <label class="form-label fw-bold">Tanggal Kirim <span class="text-danger">*</span></label>
                     <input type="date" name="tgl_kirim" class="form-control" value="{{ old('tgl_kirim', date('Y-m-d')) }}" required>
+                    @error('tgl_kirim')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    {{-- ✅ FIX: name="tgl_tiba" --}}
                     <label class="form-label fw-bold">Tanggal Tiba (Opsional)</label>
                     <input type="date" name="tgl_tiba" class="form-control" value="{{ old('tgl_tiba') }}">
+                    @error('tgl_tiba')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             
             <div class="mb-3">
-                {{-- ✅ FIX: name="status_kirim" --}}
                 <label class="form-label fw-bold">Status Pengiriman</label>
                 <select name="status_kirim" class="form-select">
                     <option value="Menunggu Kurir" {{ old('status_kirim') == 'Menunggu Kurir' ? 'selected' : '' }}>Menunggu Kurir</option>
                     <option value="Sedang Dikirim" {{ old('status_kirim') == 'Sedang Dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
                     <option value="Tiba Ditujuan" {{ old('status_kirim') == 'Tiba Ditujuan' ? 'selected' : '' }}>Tiba Ditujuan</option>
                 </select>
+                @error('status_kirim')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             
             <div class="mb-4">
                 <label class="form-label fw-bold">Bukti Foto (Opsional)</label>
                 <input type="file" name="bukti_foto" class="form-control" accept="image/*">
-                <small class="text-muted">Format: JPG, PNG. Max: 2MB</small>
+                @error('bukti_foto')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             
             <div class="d-flex gap-2">

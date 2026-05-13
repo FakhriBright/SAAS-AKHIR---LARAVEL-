@@ -50,49 +50,57 @@ class PengirimanController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        // ✅ FIX: Pakai nama field sesuai database
-        $validated = $request->validate([
-            'pemesanan_id' => 'required|exists:pemesanans,id',
-            'id_user' => 'required|exists:users,id', // ✅ Ganti dari 'kurir_id'
-            'tgl_kirim' => 'required|date', // ✅ Ganti dari 'tanggal_kirim'
-            'tgl_tiba' => 'nullable|date|after_or_equal:tgl_kirim',
-            'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan', // ✅ Ganti dari 'status_pengiriman'
-            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+public function store(Request $request)
+{
+    // ✅ DEBUG: Lihat data yang masuk
+    \Log::info('Pengiriman Store Called', $request->all());
+    
+    $validated = $request->validate([
+        'pemesanan_id' => 'required|exists:pemesanans,id',
+        'id_user' => 'required|exists:users,id',
+        'tgl_kirim' => 'required|date',
+        'tgl_tiba' => 'nullable|date|after_or_equal:tgl_kirim',
+        'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan',
+        'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ], [
+        // ✅ Custom error messages
+        'pemesanan_id.required' => 'Pesanan harus dipilih',
+        'id_user.required' => 'Kurir harus dipilih',
+        'tgl_kirim.required' => 'Tanggal kirim harus diisi',
+        'status_kirim.required' => 'Status pengiriman harus dipilih',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        // Handle upload bukti foto
+        if ($request->hasFile('bukti_foto')) {
+            $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
+        }
+
+        $pengiriman = Pengiriman::create([
+            'pemesanan_id' => $validated['pemesanan_id'],
+            'id_user' => $validated['id_user'],
+            'tgl_kirim' => $validated['tgl_kirim'],
+            'tgl_tiba' => $validated['tgl_tiba'] ?? null,
+            'status_kirim' => $validated['status_kirim'],
+            'bukti_foto' => $validated['bukti_foto'] ?? null,
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Handle upload bukti foto
-            if ($request->hasFile('bukti_foto')) {
-                $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
-            }
+        // Update status pesanan
+        $pemesanan = Pemesanan::findOrFail($validated['pemesanan_id']);
+        $pemesanan->update([
+            'status_pesan' => $validated['status_kirim'] === 'Tiba Ditujuan' ? 'Selesai' : 'Sedang Dikirim'
+        ]);
 
-            // ✅ FIX: Pakai nama field yang sesuai model
-            $pengiriman = Pengiriman::create([
-                'pemesanan_id' => $validated['pemesanan_id'],
-                'id_user' => $validated['id_user'],
-                'tgl_kirim' => $validated['tgl_kirim'],
-                'tgl_tiba' => $validated['tgl_tiba'] ?? null,
-                'status_kirim' => $validated['status_kirim'],
-                'bukti_foto' => $validated['bukti_foto'] ?? null,
-            ]);
-
-            // Update status pesanan
-            $pemesanan = Pemesanan::findOrFail($validated['pemesanan_id']);
-            $pemesanan->update([
-                'status_pesan' => $validated['status_kirim'] === 'Tiba Ditujuan' ? 'Selesai' : 'Sedang Dikirim'
-            ]);
-
-            DB::commit();
-            return redirect()->route('pengirimans.index')
-                ->with('success', '✅ Data pengiriman berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
-        }
+        DB::commit();
+        return redirect()->route('pengirimans.index')
+            ->with('success', '✅ Data pengiriman berhasil ditambahkan.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Pengiriman Store Failed: ' . $e->getMessage());
+        return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
     }
+}
 
     /**
      * Display the specified resource.

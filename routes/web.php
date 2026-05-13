@@ -82,10 +82,8 @@ Route::middleware(['auth:web', 'check.role:admin,owner,kurir'])->group(function 
         Route::resource('detail-jenis-pembayaran', DetailJenisPembayaranController::class);
     });
 
-    // 🚚 Pengiriman (Admin & Kurir)
-    Route::middleware(['check.role:admin,kurir'])->group(function () {
-        Route::resource('pengirimans', PengirimanController::class);
-    });
+    // 🚚 Pengiriman (Admin & Kurir) - ✅ FIXED: No nested middleware
+    Route::resource('pengirimans', PengirimanController::class);
 
     // 📄 REPORTS (Admin Only)
     Route::middleware(['check.role:admin'])->group(function () {
