@@ -5,89 +5,162 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Paket;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CartController extends Controller
 {
     /**
-     * Tampilkan keranjang
+     * Display cart items
      */
     public function index()
     {
         $pelanggan = auth()->guard('pelanggan')->user();
+        
         $carts = Cart::where('id_pelanggan', $pelanggan->id)
             ->with('paket')
-            ->latest()
             ->get();
         
-        $totalBelanja = $carts->sum(function($cart) {
-            return $cart->subtotal;
+        $total = $carts->sum('subtotal');
+        $totalItems = $carts->sum('jumlah');
+        
+        // Format items untuk JSON response
+        $items = $carts->map(function($cart) {
+            return [
+                'id' => $cart->id,
+                'paket_id' => $cart->paket_id,
+                'nama_paket' => $cart->paket->nama_paket,
+                'harga_paket' => $cart->paket->harga_paket,
+                'jumlah' => $cart->jumlah,
+                'subtotal' => $cart->subtotal,
+                'quantity' => $cart->jumlah,
+            ];
         });
         
-        return view('customer.cart.index', compact('carts', 'totalBelanja'));
+        // Return JSON untuk AJAX request (update ringkasan keranjang)
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'items' => $items,
+                'total' => $total,
+                'total_items' => $totalItems,
+            ]);
+        }
+        
+        // ✅ FIX: Return view dengan path yang benar
+        return view('customer.cart.index', compact('carts', 'total', 'totalItems'));
     }
-    
+
     /**
-     * Tambah ke keranjang
+     * Add item to cart
      */
     public function add(Request $request, $paketId)
     {
         $pelanggan = auth()->guard('pelanggan')->user();
         
-        // Cek apakah paket sudah ada di keranjang
+        $validated = $request->validate([
+            'jumlah' => 'required|integer|min:1|max:100'
+        ]);
+        
+        // Cek apakah paket sudah ada di cart
         $cart = Cart::where('id_pelanggan', $pelanggan->id)
             ->where('paket_id', $paketId)
             ->first();
         
         if ($cart) {
-            // Kalau ada, tambah jumlah
-            $cart->increment('jumlah');
+            // Update quantity jika sudah ada
+            $cart->jumlah += $validated['jumlah'];
+            $cart->subtotal = $cart->jumlah * $cart->paket->harga_paket;
+            $cart->save();
         } else {
-            // Kalau belum ada, buat baru
+            // Buat cart baru
+            $paket = Paket::findOrFail($paketId);
             Cart::create([
                 'id_pelanggan' => $pelanggan->id,
                 'paket_id' => $paketId,
-                'jumlah' => $request->jumlah ?? 1,
+                'jumlah' => $validated['jumlah'],
+                'subtotal' => $validated['jumlah'] * $paket->harga_paket,
             ]);
         }
         
-        return back()->with('success', '✅ Paket berhasil ditambahkan ke keranjang!');
+        // Return JSON untuk AJAX
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item berhasil ditambahkan ke keranjang',
+            ]);
+        }
+        
+        return back()->with('success', 'Item berhasil ditambahkan ke keranjang!');
     }
-    
+
     /**
-     * Update jumlah di keranjang
+     * Update cart item quantity
      */
     public function update(Request $request, $id)
     {
-        $cart = Cart::findOrFail($id);
+        $pelanggan = auth()->guard('pelanggan')->user();
         
-        if ($request->jumlah < 1) {
-            return back()->with('error', 'Jumlah minimal 1');
+        $cart = Cart::where('id', $id)
+            ->where('id_pelanggan', $pelanggan->id)
+            ->firstOrFail();
+        
+        $validated = $request->validate([
+            'jumlah' => 'required|integer|min:1|max:100'
+        ]);
+        
+        $cart->jumlah = $validated['jumlah'];
+        $cart->subtotal = $validated['jumlah'] * $cart->paket->harga_paket;
+        $cart->save();
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Quantity berhasil diupdate',
+            ]);
         }
         
-        $cart->update(['jumlah' => $request->jumlah]);
-        
-        return back()->with('success', '✅ Keranjang berhasil diupdate!');
+        return back()->with('success', 'Quantity berhasil diupdate!');
     }
-    
+
     /**
-     * Hapus item dari keranjang
+     * Remove item from cart
      */
     public function remove($id)
     {
-        $cart = Cart::findOrFail($id);
+        $pelanggan = auth()->guard('pelanggan')->user();
+        
+        $cart = Cart::where('id', $id)
+            ->where('id_pelanggan', $pelanggan->id)
+            ->firstOrFail();
+        
         $cart->delete();
         
-        return back()->with('success', '🗑️ Item dihapus dari keranjang');
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item berhasil dihapus',
+            ]);
+        }
+        
+        return back()->with('success', 'Item berhasil dihapus dari keranjang!');
     }
-    
+
     /**
-     * Kosongkan keranjang
+     * Clear all cart items
      */
     public function clear()
     {
         $pelanggan = auth()->guard('pelanggan')->user();
+        
         Cart::where('id_pelanggan', $pelanggan->id)->delete();
         
-        return back()->with('success', '🗑️ Keranjang dikosongkan');
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Keranjang berhasil dikosongkan',
+            ]);
+        }
+        
+        return back()->with('success', 'Keranjang berhasil dikosongkan!');
     }
 }

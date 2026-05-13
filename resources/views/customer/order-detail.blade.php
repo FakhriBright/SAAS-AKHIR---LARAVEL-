@@ -1,178 +1,294 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pesanan #{{ $order->no_resi }}')
+@section('title', 'Detail Pesanan #' . $order->no_resi)
 
 @section('content')
-<div class="container py-5">
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Detail Pesanan</h2>
-            <p class="text-muted mb-0">No. Resi: <span class="fw-bold text-primary">{{ $order->no_resi }}</span></p>
-        </div>
-        <a href="{{ route('customer.orders') }}" class="btn btn-outline-secondary rounded-pill">
-            <i class="bi bi-arrow-left me-2"></i>Kembali
-        </a>
-    </div>
+<style>
+    .order-detail-container { padding: 40px 0; max-width: 1200px; margin: 0 auto; }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 24px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .back-button:hover { color: #2d6a4f; }
+    
+    .order-header-card {
+        background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 25px rgba(45, 106, 79, 0.2);
+    }
+    .order-header-card h2 { margin: 0 0 8px; font-weight: 700; }
+    .order-header-card .resi { font-size: 1.1rem; opacity: 0.9; margin-bottom: 24px; }
+    
+    .status-badge-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.2);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        border: 1px solid #f0f0f0;
+        margin-bottom: 24px;
+    }
+    .card-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .info-item h4 {
+        margin: 0 0 4px;
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    .info-item p { margin: 0; font-weight: 600; color: #333; }
+    
+    .order-items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .order-items-table th {
+        text-align: left;
+        padding: 12px;
+        background: #f8f9fa;
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 600;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .order-items-table td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .order-items-table tr:last-child td { border-bottom: none; }
+    .item-name { font-weight: 600; color: #333; }
+    .item-desc { font-size: 0.85rem; color: #888; margin-top: 4px; }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: #666; }
+    .summary-value { font-weight: 600; color: #333; }
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0 0;
+        margin-top: 12px;
+        border-top: 2px solid #2d6a4f;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d6a4f;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .btn-action {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-primary {
+        background: #2d6a4f;
+        color: white;
+    }
+    .btn-primary:hover { background: #1b4332; transform: translateY(-2px); }
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-danger:hover { background: #b02a37; transform: translateY(-2px); }
+    .btn-outline {
+        background: white;
+        color: #2d6a4f;
+        border: 2px solid #2d6a4f;
+    }
+    .btn-outline:hover { background: #f8f9fa; }
+    
+    @media (max-width: 992px) {
+        .content-grid { grid-template-columns: 1fr; }
+        .info-grid { grid-template-columns: 1fr; }
+    }
+</style>
 
-    {{-- Status Banner --}}
-    @php
-    $statusConfig = [
-        'Menunggu Konfirmasi' => ['class' => 'warning', 'icon' => 'bi-hourglass-split', 'desc' => 'Pesanan sedang menunggu konfirmasi admin'],
-        'Sedang Diproses' => ['class' => 'info', 'icon' => 'bi-gear', 'desc' => 'Pesanan sedang disiapkan oleh dapur kami'],
-        'Menunggu Kurir' => ['class' => 'primary', 'icon' => 'bi-truck', 'desc' => 'Pesanan siap diantar, menunggu kurir'],
-        'Selesai' => ['class' => 'success', 'icon' => 'bi-check-circle', 'desc' => 'Pesanan telah selesai dan diterima'],
-        'Dibatalkan' => ['class' => 'danger', 'icon' => 'bi-x-circle', 'desc' => 'Pesanan telah dibatalkan'],
-    ];
-    $config = $statusConfig[$order->status_pesan] ?? $statusConfig['Menunggu Konfirmasi'];
-    @endphp
-    <div class="alert alert-{{ $config['class'] }} d-flex align-items-center mb-4" role="alert">
-        <i class="bi {{ $config['icon'] }} fs-4 me-3"></i>
-        <div>
-            <h6 class="alert-heading fw-bold mb-0">{{ $order->status_pesan }}</h6>
-            <small>{{ $config['desc'] }}</small>
-        </div>
-    </div>
+<div class="container order-detail-container">
+    {{-- Back Button --}}
+    <a href="{{ route('customer.orders') }}" class="back-button">
+        <i class="bi bi-arrow-left"></i> Kembali ke Pesanan
+    </a>
 
-    <div class="row g-4">
-        {{-- Left: Order Details --}}
-        <div class="col-lg-8">
-            {{-- Order Info Card --}}
-            <div class="card-modern p-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Informasi Pesanan</h5>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Tanggal Pesan</small>
-                        <span class="fw-bold">{{ $order->tgl_pesan->format('d F Y') }}</span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Metode Pembayaran</small>
-                        <span class="fw-bold">{{ $order->jenisPembayaran->metode_pembayaran ?? '-' }}</span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Catatan</small>
-                        <span>{{ $order->catatan ?? 'Tidak ada' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Items Card --}}
-            <div class="card-modern p-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-cart3 me-2"></i>Item Pesanan</h5>
-                <div class="table-responsive">
-                    <table class="table table-modern mb-0">
-                        <thead>
-                            <tr>
-                                <th>Paket</th>
-                                <th class="text-center">Jumlah</th>
-                                <th class="text-end">Harga</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($order->detailPemesanans as $detail)
-                            <tr>
-                                <td>
-                                    <div class="fw-bold">{{ $detail->paket->nama_paket ?? 'Paket Tidak Ditemukan' }}</div>
-                                    <small class="text-muted">{{ $detail->paket->kategori ?? '-' }}</small>
-                                </td>
-                                <td class="text-center">{{ $detail->jumlah }}</td>
-                                <td class="text-end">Rp {{ number_format($detail->paket->harga_paket ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-end fw-bold">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- Delivery Info (if exists) --}}
-            @if($order->pengiriman)
-            <div class="card-modern p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Informasi Pengiriman</h5>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Kurir</small>
-                        <span class="fw-bold">{{ $order->pengiriman->user->name ?? '-' }}</span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Tanggal Kirim</small>
-                        <span>{{ $order->pengiriman->tgl_kirim?->format('d/m/Y H:i') ?? '-' }}</span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Estimasi Tiba</small>
-                        <span>{{ $order->pengiriman->tgl_tiba?->format('d/m/Y H:i') ?? '-' }}</span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Status Kirim</small>
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill">
-                            {{ $order->pengiriman->status_kirim }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+    {{-- Header Card --}}
+    <div class="order-header-card">
+        <h2>Detail Pesanan</h2>
+        <div class="resi">No. Resi: {{ $order->no_resi }}</div>
+        <div class="status-badge-large">
+            @if($order->status_pesan == 'Menunggu Konfirmasi')
+                <i class="bi bi-hourglass-split fs-4"></i>
+            @elseif($order->status_pesan == 'Sedang Diproses')
+                <i class="bi bi-gear fs-4"></i>
+            @elseif($order->status_pesan == 'Menunggu Kurir')
+                <i class="bi bi-truck fs-4"></i>
+            @elseif($order->status_pesan == 'Selesai')
+                <i class="bi bi-check-circle fs-4"></i>
+            @else
+                <i class="bi bi-x-circle fs-4"></i>
             @endif
+            {{ $order->status_pesan }}
+        </div>
+    </div>
+
+    <div class="content-grid">
+        {{-- Left Column --}}
+        <div>
+            {{-- Order Info --}}
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-info-circle"></i> Informasi Pesanan
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <h4>Tanggal Pesan</h4>
+                        <p>{{ $order->tgl_pesan->format('d F Y') }}</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Metode Pembayaran</h4>
+                        <p>{{ $order->jenisPembayaran->metode_pembayaran ?? 'COD (Bayar di Tempat)' }}</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Catatan</h4>
+                        <p>{{ $order->catatan ?? '-' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Order Items --}}
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-cart3"></i> Item Pesanan
+                </div>
+                <table class="order-items-table">
+                    <thead>
+                        <tr>
+                            <th>Paket</th>
+                            <th style="text-align: center;">Jumlah</th>
+                            <th style="text-align: right;">Harga</th>
+                            <th style="text-align: right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($order->detailPemesanans as $detail)
+                        <tr>
+                            <td>
+                                <div class="item-name">{{ $detail->paket->nama_paket }}</div>
+                                <div class="item-desc">{{ $detail->paket->kategori }}</div>
+                            </td>
+                            <td style="text-align: center;">{{ $detail->jumlah }}</td>
+                            <td style="text-align: right;">Rp {{ number_format($detail->paket->harga_paket, 0, ',', '.') }}</td>
+                            <td style="text-align: right; font-weight: 700; color: #2d6a4f;">
+                                Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        {{-- Right: Summary --}}
-        <div class="col-lg-4">
-            <div class="card-modern p-4 sticky-top" style="top: 100px;">
-                <h5 class="fw-bold mb-3">Ringkasan Pembayaran</h5>
-                
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Subtotal</span>
+        {{-- Right Column --}}
+        <div>
+            {{-- Payment Summary --}}
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-receipt"></i> Ringkasan Pembayaran
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal</span>
+                    <span class="summary-value">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Pajak & Ongkir</span>
+                    <span class="summary-value" style="color: #2d6a4f;">Gratis</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
                     <span>Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Pajak & Ongkir</span>
-                    <span class="text-success">Gratis</span>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-4">
-                    <span class="fs-5 fw-bold">Total</span>
-                    <span class="fs-4 fw-bold text-primary">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</span>
-                </div>
+            </div>
 
-                {{-- Action Buttons --}}
-                <div class="d-grid gap-2">
+            {{-- Action Buttons --}}
+            <div class="card">
+                <div class="action-buttons">
                     @if($order->status_pesan == 'Menunggu Konfirmasi')
                     <form action="{{ route('customer.order.cancel', $order->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?')">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill">
-                            <i class="bi bi-x-circle me-2"></i>Batalkan Pesanan
+                        <button type="submit" class="btn-action btn-danger">
+                            <i class="bi bi-x-circle"></i> Batalkan Pesanan
                         </button>
                     </form>
                     @endif
                     
                     @if($order->status_pesan == 'Selesai')
-                    <button class="btn btn-success w-100 rounded-pill" onclick="window.print()">
-                        <i class="bi bi-printer me-2"></i>Cetak Struk
+                    <button class="btn-action btn-outline" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Cetak Struk
                     </button>
                     @endif
                     
                     <a href="https://wa.me/6285842517974?text=Halo%20Fakhri%20Kitchen,%20saya%20mau%20tanya%20tentang%20pesanan%20{{ $order->no_resi }}" 
-                       class="btn btn-outline-success w-100 rounded-pill" target="_blank">
-                        <i class="bi bi-whatsapp me-2"></i>Hubungi Kami
+                       class="btn-action btn-primary" target="_blank">
+                        <i class="bi bi-whatsapp"></i> Hubungi Kami
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-{{-- CSS Tambahan --}}
-@push('styles')
-<style>
-    .card-modern { background: white; border: none; border-radius: 20px; box-shadow: 0 5px 20px rgba(112, 144, 176, 0.08); }
-    .table-modern { margin-bottom: 0; }
-    .table-modern thead th { background: #f8f9fa; color: #a3aed0; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; border: none; }
-    .table-modern tbody td { padding: 1rem; vertical-align: middle; color: #2b3674; font-weight: 500; border-bottom: 1px solid #f0f2f5; }
-    .table-modern tbody tr:last-child td { border-bottom: none; }
-    @media print {
-        .no-print { display: none !important; }
-        .card-modern { box-shadow: none !important; border: 1px solid #ddd !important; }
-    }
-</style>
-@endpush
 @endsection

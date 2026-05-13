@@ -6,6 +6,7 @@ use App\Models\Pemesanan;
 use App\Models\Paket;
 use App\Models\Cart;
 use App\Models\JenisPembayaran;
+use App\Models\DetailPemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,6 @@ class CustomerController extends Controller
     {
         $pelanggan = auth()->guard('pelanggan')->user();
         
-        // Statistik
         $totalPesanan = Pemesanan::where('id_pelanggan', $pelanggan->id)->count();
         $pesananAktif = Pemesanan::where('id_pelanggan', $pelanggan->id)
             ->whereIn('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir'])
@@ -29,12 +29,10 @@ class CustomerController extends Controller
             ->where('status_pesan', 'Selesai')
             ->count();
         
-        // Total belanja
         $totalBelanja = Pemesanan::where('id_pelanggan', $pelanggan->id)
             ->where('status_pesan', 'Selesai')
             ->sum('total_bayar');
         
-        // 5 Pesanan terakhir
         $recentOrders = Pemesanan::where('id_pelanggan', $pelanggan->id)
             ->with('detailPemesanans.paket')
             ->latest()
@@ -42,23 +40,18 @@ class CustomerController extends Controller
             ->get();
         
         return view('customer.dashboard', compact(
-            'totalPesanan',
-            'pesananAktif',
-            'pesananSelesai',
-            'totalBelanja',
-            'recentOrders'
+            'totalPesanan', 'pesananAktif', 'pesananSelesai', 'totalBelanja', 'recentOrders'
         ));
     }
 
     /**
      * Show Catalog
      */
-public function catalog()
-{
-    // Hapus where('status', 'aktif') karena kolom 'status' nggak ada
-    $pakets = Paket::paginate(9);
-    return view('customer.catalog', compact('pakets'));
-}
+    public function catalog()
+    {
+        $pakets = Paket::where('status', 'aktif')->paginate(9);
+        return view('customer.catalog', compact('pakets'));
+    }
 
     /**
      * Show Orders History
@@ -67,7 +60,7 @@ public function catalog()
     {
         $pelanggan = auth()->guard('pelanggan')->user();
         $orders = Pemesanan::where('id_pelanggan', $pelanggan->id)
-            ->with('detailPemesanans.paket')
+            ->with(['detailPemesanans.paket', 'jenisPembayaran'])
             ->latest()
             ->paginate(10);
         return view('customer.orders', compact('orders'));
@@ -81,7 +74,7 @@ public function catalog()
         $pelanggan = auth()->guard('pelanggan')->user();
         $order = Pemesanan::where('id', $id)
             ->where('id_pelanggan', $pelanggan->id)
-            ->with(['detailPemesanans.paket', 'pengiriman'])
+            ->with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
             ->firstOrFail();
         return view('customer.order-detail', compact('order'));
     }
@@ -96,7 +89,6 @@ public function catalog()
             ->where('id_pelanggan', $pelanggan->id)
             ->firstOrFail();
         
-        // Hanya bisa batal jika status masih "Menunggu Konfirmasi"
         if ($order->status_pesan !== 'Menunggu Konfirmasi') {
             return back()->with('error', 'Pesanan tidak dapat dibatalkan.');
         }
@@ -108,37 +100,36 @@ public function catalog()
     /**
      * Show Checkout Page
      */
-    public function checkout(Request $request)
+    public function checkout()
     {
         $pelanggan = auth()->guard('pelanggan')->user();
         
-        // Ambil cart IDs dari query string atau session
-        $cartIds = $request->query('cart_ids') 
-            ? explode(',', $request->query('cart_ids'))
-            : session('cart_ids', []);
-        
         $carts = Cart::where('id_pelanggan', $pelanggan->id)
-            ->whereIn('id', $cartIds)
             ->with('paket')
             ->get();
         
         if ($carts->isEmpty()) {
-            return redirect()->route('customer.cart.index')->with('error', 'Keranjang kosong.');
+            return redirect()->route('customer.cart.index')
+                ->with('error', 'Keranjang belanja kosong.');
         }
         
-        $totalBelanja = $carts->sum('subtotal');
+        $total = $carts->sum(function($cart) {
+            return $cart->subtotal ?? ($cart->jumlah * $cart->paket->harga_paket);
+        });
+        
         $jenisPembayarans = JenisPembayaran::all();
         
-        return view('customer.checkout', compact('carts', 'totalBelanja', 'jenisPembayarans'));
+        return view('customer.checkout', compact('carts', 'total', 'jenisPembayarans'));
     }
 
     /**
-     * Process Order
+     * Process Order (Store)
      */
     public function storeOrder(Request $request)
     {
+        $pelanggan = auth()->guard('pelanggan')->user();
+        
         $validated = $request->validate([
-            'cart_ids' => 'required|string',
             'tgl_pesan' => 'required|date|after_or_equal:today',
             'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
             'catatan' => 'nullable|string|max:1000',
@@ -147,39 +138,20 @@ public function catalog()
         try {
             DB::beginTransaction();
             
-            $pelanggan = auth()->guard('pelanggan')->user();
-            $ids = explode(',', $validated['cart_ids']);
-            
             $carts = Cart::where('id_pelanggan', $pelanggan->id)
-                ->whereIn('id', $ids)
                 ->with('paket')
                 ->get();
             
             if ($carts->isEmpty()) {
-                return back()->with('error', 'Item di keranjang tidak valid.');
+                return back()->with('error', 'Keranjang belanja kosong.');
             }
             
-            // Generate No. Resi
             $noResi = 'RESI-' . date('YmdHis') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             
-            // Hitung total & siapkan detail
-            $totalBayar = 0;
-            $detailData = [];
+            $totalBayar = $carts->sum(function($cart) {
+                return $cart->subtotal ?? ($cart->jumlah * $cart->paket->harga_paket);
+            });
             
-            foreach ($carts as $cart) {
-                $subtotal = $cart->paket->harga_paket * $cart->jumlah;
-                $totalBayar += $subtotal;
-                
-                $detailData[] = [
-                    'paket_id' => $cart->paket_id,
-                    'jumlah' => $cart->jumlah,
-                    'subtotal' => $subtotal,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-            
-            // Buat Pemesanan
             $pemesanan = Pemesanan::create([
                 'id_pelanggan' => $pelanggan->id,
                 'id_jenis_bayar' => $validated['id_jenis_bayar'],
@@ -190,23 +162,28 @@ public function catalog()
                 'catatan' => $validated['catatan'] ?? null,
             ]);
             
-            // Buat Detail Pemesanan
-            foreach ($detailData as $detail) {
-                $detail['pemesanan_id'] = $pemesanan->id;
-                \App\Models\DetailPemesanan::create($detail);
+            foreach ($carts as $cart) {
+                $subtotal = $cart->subtotal ?? ($cart->jumlah * $cart->paket->harga_paket);
+                
+                DetailPemesanan::create([
+                    'pemesanan_id' => $pemesanan->id,
+                    'paket_id' => $cart->paket_id,
+                    'jumlah' => $cart->jumlah,
+                    'subtotal' => $subtotal,
+                ]);
             }
             
-            // Hapus cart yang sudah di-checkout
-            Cart::whereIn('id', $carts->pluck('id'))->delete();
+            Cart::where('id_pelanggan', $pelanggan->id)->delete();
             
             DB::commit();
             
-            return redirect()->route('customer.orders')
+            return redirect()->route('customer.order.show', $pemesanan->id)
                 ->with('success', '✅ Pesanan berhasil dibuat! No. Resi: ' . $noResi);
                 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
+            return back()->withInput()
+                ->with('error', '❌ Gagal: ' . $e->getMessage());
         }
     }
 
@@ -249,4 +226,4 @@ public function catalog()
         
         return back()->with('success', 'Profil berhasil diperbarui.');
     }
-} // ✅ KURUNG KURAWAL PENUTUP CLASS - JANGAN DIHAPUS!
+}

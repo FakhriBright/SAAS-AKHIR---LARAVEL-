@@ -17,14 +17,18 @@
                     Dari prasmanan mewah hingga meal box praktis, setiap hidangan dibuat
                     dengan cinta dan bahan berkualitas terbaik.
                 </p>
+                
+                {{-- ✅ FIXED: Tombol Pesan Sekarang → Katalog --}}
                 <div class="d-flex gap-3 flex-wrap">
-                    <a href="{{ route('register') }}" class="btn btn-cta btn-lg">
+                    <a href="{{ route('customer.catalog') }}" class="btn btn-cta btn-lg">
                         <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
                     </a>
                     <a href="#offerings" class="btn btn-outline-cta btn-lg">
                         <i class="bi bi-play-circle me-2"></i>Lihat Menu
                     </a>
                 </div>
+                
+                {{-- Stats --}}
                 <div class="row mt-5">
                     <div class="col-4 text-center">
                         <h3 class="fw-bold text-primary mb-0">500+</h3>
@@ -40,11 +44,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6 text-center">
                 <div class="hero-image-wrapper">
-                    {{-- IMAGE: hero-food.jpg --}}
                     <img src="{{ asset('images/landing/hero-food.jpg') }}" alt="Catering Fakhri Kitchen" class="hero-image">
-                    {{-- ✅ BADGE: Nempel di gambar --}}
                     <div class="hero-badge">
                         <i class="bi bi-award me-1"></i> Premium Quality Since 2024
                     </div>
@@ -62,47 +64,40 @@
             <p class="text-white-50">Komitmen kami untuk memberikan yang terbaik</p>
         </div>
         <div class="row g-4">
-            {{-- Excellence --}}
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
                         <i class="bi bi-fire text-warning"></i>
                     </div>
                     <h5 class="text-white mb-2">Excellence</h5>
-                    <p class="text-white-50 mb-0">Unforgettable culinary experiences</p>
+                    <p class="text-white-50 mb-0 small">Unforgettable culinary experiences</p>
                 </div>
             </div>
-            
-            {{-- Innovation --}}
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
                         <i class="bi bi-lightbulb text-warning"></i>
                     </div>
                     <h5 class="text-white mb-2">Innovation</h5>
-                    <p class="text-white-50 mb-0">Dynamic, fresh, exciting flavors</p>
+                    <p class="text-white-50 mb-0 small">Dynamic, fresh, exciting flavors</p>
                 </div>
             </div>
-            
-            {{-- Quality --}}
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
                         <i class="bi bi-gem text-warning"></i>
                     </div>
                     <h5 class="text-white mb-2">Quality</h5>
-                    <p class="text-white-50 mb-0">Source to plate culinary delights</p>
+                    <p class="text-white-50 mb-0 small">Source to plate culinary delights</p>
                 </div>
             </div>
-            
-            {{-- ✅ Sustainability - FIX: Pakai icon bi-tree --}}
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
                         <i class="bi bi-tree text-warning"></i>
                     </div>
                     <h5 class="text-white mb-2">Sustainability</h5>
-                    <p class="text-white-50 mb-0">Eco-friendly dining practices</p>
+                    <p class="text-white-50 mb-0 small">Eco-friendly dining practices</p>
                 </div>
             </div>
         </div>
@@ -112,20 +107,19 @@
 {{-- Offerings Section --}}
 <section class="offerings-section" id="offerings">
     <div class="container">
-        <div class="text-center">
+        <div class="text-center mb-5">
             <h2 class="section-title">Our Offerings</h2>
             <p class="section-subtitle">Pilih paket catering yang sesuai dengan kebutuhan Anda</p>
         </div>
         <div class="row g-4">
-            {{-- Buffet / Prasmanan --}}
+            {{-- Prasmanan --}}
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-buffet.jpg --}}
                     <img src="{{ asset('images/landing/offering-buffet.jpg') }}" alt="Prasmanan">
                     <div class="card-body">
                         <h5>Prasmanan</h5>
                         <p>Sajian lengkap dengan berbagai pilihan menu untuk acara besar Anda.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="{{ route('customer.catalog') }}" class="btn-offering mt-auto">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -133,12 +127,11 @@
             {{-- Meal Box --}}
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-mealbox.jpg --}}
                     <img src="{{ asset('images/landing/offering-mealbox.jpg') }}" alt="Meal Box">
                     <div class="card-body">
                         <h5>Meal Box</h5>
                         <p>Nasi box praktis dengan porsi pas dan cita rasa terbaik.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="{{ route('customer.catalog') }}" class="btn-offering mt-auto">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -146,12 +139,11 @@
             {{-- Snack Box --}}
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-snackbox.jpg --}}
                     <img src="{{ asset('images/landing/offering-snackbox.jpg') }}" alt="Snack Box">
                     <div class="card-body">
                         <h5>Snack Box</h5>
                         <p>Camilan lezat untuk meeting, seminar, atau acara santai Anda.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="{{ route('customer.catalog') }}" class="btn-offering mt-auto">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -159,12 +151,11 @@
             {{-- Tumpeng --}}
             <div class="col-lg-3 col-md-6">
                 <div class="offering-card">
-                    {{-- IMAGE: offering-tumpeng.jpg --}}
                     <img src="{{ asset('images/landing/offering-tumpeng.jpg') }}" alt="Tumpeng">
                     <div class="card-body">
                         <h5>Tumpeng</h5>
                         <p>Tumpeng spesial untuk syukuran, ulang tahun, dan perayaan.</p>
-                        <a href="{{ route('customer.catalog') }}" class="btn btn-offering mt-2">Lihat Detail</a>
+                        <a href="{{ route('customer.catalog') }}" class="btn-offering mt-auto">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -173,30 +164,25 @@
 </section>
 
 {{-- Gallery Section --}}
-<section class="gallery-section" id="gallery">
+<section class="gallery-section py-5" id="gallery">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="section-title">Visual Gallery</h2>
             <p class="section-subtitle">Intip kelezatan hidangan kami</p>
         </div>
         <div class="gallery-grid">
-            {{-- IMAGE: gallery-1.jpg (large, spans 2x2) --}}
             <div class="gallery-item">
                 <img src="{{ asset('images/landing/gallery-1.jpg') }}" alt="Gallery 1">
             </div>
-            {{-- IMAGE: gallery-2.jpg --}}
             <div class="gallery-item">
                 <img src="{{ asset('images/landing/gallery-2.jpg') }}" alt="Gallery 2">
             </div>
-            {{-- IMAGE: gallery-3.jpg --}}
             <div class="gallery-item">
                 <img src="{{ asset('images/landing/gallery-3.jpg') }}" alt="Gallery 3">
             </div>
-            {{-- IMAGE: gallery-4.jpg --}}
             <div class="gallery-item">
                 <img src="{{ asset('images/landing/gallery-4.jpg') }}" alt="Gallery 4">
             </div>
-            {{-- IMAGE: gallery-5.jpg --}}
             <div class="gallery-item">
                 <img src="{{ asset('images/landing/gallery-5.jpg') }}" alt="Gallery 5">
             </div>
@@ -205,7 +191,7 @@
 </section>
 
 {{-- Testimonials Section --}}
-<section class="testimonials-section" id="testimonials">
+<section id="testimonials">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="section-title">What Our Customers Say</h2>
@@ -223,10 +209,9 @@
                     </div>
                     <p>"Fakhri Kitchen's catering service transformed our wedding reception into a truly unforgettable culinary experience. The flavors were exceptional!"</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-1.jpg --}}
                         <img src="{{ asset('images/landing/testimonial-1.jpg') }}" alt="Sarah" class="testimonial-avatar">
                         <div>
-                            <h6>Sarah Putri</h6>
+                            <h6>Royhan</h6>
                             <small>Wedding Event</small>
                         </div>
                     </div>
@@ -243,10 +228,9 @@
                     </div>
                     <p>"We ordered meal boxes for our corporate event and everyone loved it. Great variety, delicious food, and always on time!"</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-2.jpg --}}
                         <img src="{{ asset('images/landing/testimonial-2.jpg') }}" alt="Ahmad" class="testimonial-avatar">
                         <div>
-                            <h6>Ahmad Rizky</h6>
+                            <h6>Regan BSD</h6>
                             <small>Corporate Event</small>
                         </div>
                     </div>
@@ -263,10 +247,9 @@
                     </div>
                     <p>"The cooking class I attended was educational but incredibly fun! The team is professional and the tumpeng was gorgeous."</p>
                     <div class="testimonial-author">
-                        {{-- IMAGE: testimonial-3.jpg --}}
                         <img src="{{ asset('images/landing/testimonial-3.jpg') }}" alt="Diana" class="testimonial-avatar">
                         <div>
-                            <h6>Diana Sari</h6>
+                            <h6>Danish Athaya</h6>
                             <small>Syukuran Event</small>
                         </div>
                     </div>
@@ -278,16 +261,14 @@
 
 {{-- CTA Section --}}
 <section class="cta-section">
-    <div class="container">
-        <h2>Ready to Elevate Your Culinary Journey?</h2>
-        <p>Hubungi kami sekarang dan dapatkan penawaran spesial untuk acara Anda!</p>
+    <div class="container position-relative">
+        <h2 class="display-5 fw-bold mb-3">Ready to Elevate Your Culinary Journey?</h2>
+        <p class="lead mb-4 opacity-75">Hubungi kami sekarang dan dapatkan penawaran spesial untuk acara Anda!</p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-<a href="{{ route('customer.catalog') }}" class="btn btn-cta btn-lg">
-    <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
-</a>
-        <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
+            <a href="{{ route('customer.catalog') }}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold text-success">
+                <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
             </a>
-            <a href="https://wa.me/6285842517974" class="btn btn-outline-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem; font-weight: 600;">
+            <a href="https://wa.me/6285842517974" class="btn btn-outline-light btn-lg rounded-pill px-4">
                 <i class="bi bi-whatsapp me-2"></i>WhatsApp Kami
             </a>
         </div>

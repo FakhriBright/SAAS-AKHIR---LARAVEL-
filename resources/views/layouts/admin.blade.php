@@ -55,9 +55,25 @@
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('pelanggans.*') ? 'active' : '' }}" href="{{ route('pelanggans.index') }}"><i class="bi bi-people-fill"></i> Data Pelanggan</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('pemesanans.*') ? 'active' : '' }}" href="{{ route('pemesanans.index') }}"><i class="bi bi-cart-check-fill"></i> Pemesanan</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('pengirimans.*') ? 'active' : '' }}" href="{{ route('pengirimans.index') }}"><i class="bi bi-truck-front-fill"></i> Pengiriman</a></li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('jenis-pembayaran.*') ? 'active' : '' }}" href="{{ route('jenis-pembayaran.index') }}">
+                    <i class="bi bi-credit-card-2-front"></i> Metode Pembayaran
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('detail-jenis-pembayaran.*') ? 'active' : '' }}" href="{{ route('detail-jenis-pembayaran.index') }}">
+                    <i class="bi bi-receipt"></i> Detail Pembayaran
+                </a>
+            </li>
+            {{-- ✅ AKHIR MENU BARU --}}
         </ul>
         <div class="mt-auto pt-4">
-            <form action="{{ route('logout') }}" method="POST">@csrf<button type="submit" class="btn-logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></form>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+            </form>
         </div>
     </div>
 
@@ -67,7 +83,9 @@
                 <h6 class="mb-0 fw-bold text-dark">Welcome back, {{ Auth::user()->name }}!</h6>
                 <small class="text-muted">Admin Catering</small>
             </div>
-            <div class="badge bg-light text-dark p-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i> {{ now()->format('d M Y') }}</div>
+            <div class="badge bg-light text-dark p-2 rounded-pill">
+                <i class="bi bi-calendar3 me-1"></i> {{ now()->format('d M Y') }}
+            </div>
         </div>
         @yield('content')
     </div>

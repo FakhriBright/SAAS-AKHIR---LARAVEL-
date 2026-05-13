@@ -1,180 +1,297 @@
 
 
-<?php $__env->startSection('title', 'Detail Pesanan #<?php echo e($order->no_resi); ?>'); ?>
+<?php $__env->startSection('title', 'Detail Pesanan #' . $order->no_resi); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="container py-5">
+<style>
+    .order-detail-container { padding: 40px 0; max-width: 1200px; margin: 0 auto; }
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Detail Pesanan</h2>
-            <p class="text-muted mb-0">No. Resi: <span class="fw-bold text-primary"><?php echo e($order->no_resi); ?></span></p>
-        </div>
-        <a href="<?php echo e(route('customer.orders')); ?>" class="btn btn-outline-secondary rounded-pill">
-            <i class="bi bi-arrow-left me-2"></i>Kembali
-        </a>
-    </div>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 24px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .back-button:hover { color: #2d6a4f; }
+    
+    .order-header-card {
+        background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 25px rgba(45, 106, 79, 0.2);
+    }
+    .order-header-card h2 { margin: 0 0 8px; font-weight: 700; }
+    .order-header-card .resi { font-size: 1.1rem; opacity: 0.9; margin-bottom: 24px; }
+    
+    .status-badge-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.2);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        border: 1px solid #f0f0f0;
+        margin-bottom: 24px;
+    }
+    .card-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .info-item h4 {
+        margin: 0 0 4px;
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    .info-item p { margin: 0; font-weight: 600; color: #333; }
+    
+    .order-items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .order-items-table th {
+        text-align: left;
+        padding: 12px;
+        background: #f8f9fa;
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 600;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .order-items-table td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .order-items-table tr:last-child td { border-bottom: none; }
+    .item-name { font-weight: 600; color: #333; }
+    .item-desc { font-size: 0.85rem; color: #888; margin-top: 4px; }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: #666; }
+    .summary-value { font-weight: 600; color: #333; }
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0 0;
+        margin-top: 12px;
+        border-top: 2px solid #2d6a4f;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d6a4f;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .btn-action {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-primary {
+        background: #2d6a4f;
+        color: white;
+    }
+    .btn-primary:hover { background: #1b4332; transform: translateY(-2px); }
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-danger:hover { background: #b02a37; transform: translateY(-2px); }
+    .btn-outline {
+        background: white;
+        color: #2d6a4f;
+        border: 2px solid #2d6a4f;
+    }
+    .btn-outline:hover { background: #f8f9fa; }
+    
+    @media (max-width: 992px) {
+        .content-grid { grid-template-columns: 1fr; }
+        .info-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="container order-detail-container">
+    
+    <a href="<?php echo e(route('customer.orders')); ?>" class="back-button">
+        <i class="bi bi-arrow-left"></i> Kembali ke Pesanan
+    </a>
 
     
-    <?php
-    $statusConfig = [
-        'Menunggu Konfirmasi' => ['class' => 'warning', 'icon' => 'bi-hourglass-split', 'desc' => 'Pesanan sedang menunggu konfirmasi admin'],
-        'Sedang Diproses' => ['class' => 'info', 'icon' => 'bi-gear', 'desc' => 'Pesanan sedang disiapkan oleh dapur kami'],
-        'Menunggu Kurir' => ['class' => 'primary', 'icon' => 'bi-truck', 'desc' => 'Pesanan siap diantar, menunggu kurir'],
-        'Selesai' => ['class' => 'success', 'icon' => 'bi-check-circle', 'desc' => 'Pesanan telah selesai dan diterima'],
-        'Dibatalkan' => ['class' => 'danger', 'icon' => 'bi-x-circle', 'desc' => 'Pesanan telah dibatalkan'],
-    ];
-    $config = $statusConfig[$order->status_pesan] ?? $statusConfig['Menunggu Konfirmasi'];
-    ?>
-    <div class="alert alert-<?php echo e($config['class']); ?> d-flex align-items-center mb-4" role="alert">
-        <i class="bi <?php echo e($config['icon']); ?> fs-4 me-3"></i>
-        <div>
-            <h6 class="alert-heading fw-bold mb-0"><?php echo e($order->status_pesan); ?></h6>
-            <small><?php echo e($config['desc']); ?></small>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        
-        <div class="col-lg-8">
-            
-            <div class="card-modern p-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Informasi Pesanan</h5>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Tanggal Pesan</small>
-                        <span class="fw-bold"><?php echo e($order->tgl_pesan->format('d F Y')); ?></span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Metode Pembayaran</small>
-                        <span class="fw-bold"><?php echo e($order->jenisPembayaran->metode_pembayaran ?? '-'); ?></span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Catatan</small>
-                        <span><?php echo e($order->catatan ?? 'Tidak ada'); ?></span>
-                    </div>
-                </div>
-            </div>
-
-            
-            <div class="card-modern p-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-cart3 me-2"></i>Item Pesanan</h5>
-                <div class="table-responsive">
-                    <table class="table table-modern mb-0">
-                        <thead>
-                            <tr>
-                                <th>Paket</th>
-                                <th class="text-center">Jumlah</th>
-                                <th class="text-end">Harga</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $__currentLoopData = $order->detailPemesanans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr>
-                                <td>
-                                    <div class="fw-bold"><?php echo e($detail->paket->nama_paket ?? 'Paket Tidak Ditemukan'); ?></div>
-                                    <small class="text-muted"><?php echo e($detail->paket->kategori ?? '-'); ?></small>
-                                </td>
-                                <td class="text-center"><?php echo e($detail->jumlah); ?></td>
-                                <td class="text-end">Rp <?php echo e(number_format($detail->paket->harga_paket ?? 0, 0, ',', '.')); ?></td>
-                                <td class="text-end fw-bold">Rp <?php echo e(number_format($detail->subtotal, 0, ',', '.')); ?></td>
-                            </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            
-            <?php if($order->pengiriman): ?>
-            <div class="card-modern p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Informasi Pengiriman</h5>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Kurir</small>
-                        <span class="fw-bold"><?php echo e($order->pengiriman->user->name ?? '-'); ?></span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Tanggal Kirim</small>
-                        <span><?php echo e($order->pengiriman->tgl_kirim?->format('d/m/Y H:i') ?? '-'); ?></span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Estimasi Tiba</small>
-                        <span><?php echo e($order->pengiriman->tgl_tiba?->format('d/m/Y H:i') ?? '-'); ?></span>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <small class="text-muted d-block">Status Kirim</small>
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill">
-                            <?php echo e($order->pengiriman->status_kirim); ?>
-
-                        </span>
-                    </div>
-                </div>
-            </div>
+    <div class="order-header-card">
+        <h2>Detail Pesanan</h2>
+        <div class="resi">No. Resi: <?php echo e($order->no_resi); ?></div>
+        <div class="status-badge-large">
+            <?php if($order->status_pesan == 'Menunggu Konfirmasi'): ?>
+                <i class="bi bi-hourglass-split fs-4"></i>
+            <?php elseif($order->status_pesan == 'Sedang Diproses'): ?>
+                <i class="bi bi-gear fs-4"></i>
+            <?php elseif($order->status_pesan == 'Menunggu Kurir'): ?>
+                <i class="bi bi-truck fs-4"></i>
+            <?php elseif($order->status_pesan == 'Selesai'): ?>
+                <i class="bi bi-check-circle fs-4"></i>
+            <?php else: ?>
+                <i class="bi bi-x-circle fs-4"></i>
             <?php endif; ?>
+            <?php echo e($order->status_pesan); ?>
+
+        </div>
+    </div>
+
+    <div class="content-grid">
+        
+        <div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-info-circle"></i> Informasi Pesanan
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <h4>Tanggal Pesan</h4>
+                        <p><?php echo e($order->tgl_pesan->format('d F Y')); ?></p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Metode Pembayaran</h4>
+                        <p><?php echo e($order->jenisPembayaran->metode_pembayaran ?? 'COD (Bayar di Tempat)'); ?></p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Catatan</h4>
+                        <p><?php echo e($order->catatan ?? '-'); ?></p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-cart3"></i> Item Pesanan
+                </div>
+                <table class="order-items-table">
+                    <thead>
+                        <tr>
+                            <th>Paket</th>
+                            <th style="text-align: center;">Jumlah</th>
+                            <th style="text-align: right;">Harga</th>
+                            <th style="text-align: right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__currentLoopData = $order->detailPemesanans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <tr>
+                            <td>
+                                <div class="item-name"><?php echo e($detail->paket->nama_paket); ?></div>
+                                <div class="item-desc"><?php echo e($detail->paket->kategori); ?></div>
+                            </td>
+                            <td style="text-align: center;"><?php echo e($detail->jumlah); ?></td>
+                            <td style="text-align: right;">Rp <?php echo e(number_format($detail->paket->harga_paket, 0, ',', '.')); ?></td>
+                            <td style="text-align: right; font-weight: 700; color: #2d6a4f;">
+                                Rp <?php echo e(number_format($detail->subtotal, 0, ',', '.')); ?>
+
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         
-        <div class="col-lg-4">
-            <div class="card-modern p-4 sticky-top" style="top: 100px;">
-                <h5 class="fw-bold mb-3">Ringkasan Pembayaran</h5>
-                
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Subtotal</span>
+        <div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <i class="bi bi-receipt"></i> Ringkasan Pembayaran
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal</span>
+                    <span class="summary-value">Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Pajak & Ongkir</span>
+                    <span class="summary-value" style="color: #2d6a4f;">Gratis</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
                     <span>Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Pajak & Ongkir</span>
-                    <span class="text-success">Gratis</span>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-4">
-                    <span class="fs-5 fw-bold">Total</span>
-                    <span class="fs-4 fw-bold text-primary">Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></span>
-                </div>
+            </div>
 
-                
-                <div class="d-grid gap-2">
+            
+            <div class="card">
+                <div class="action-buttons">
                     <?php if($order->status_pesan == 'Menunggu Konfirmasi'): ?>
                     <form action="<?php echo e(route('customer.order.cancel', $order->id)); ?>" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?')">
                         <?php echo csrf_field(); ?>
                         <?php echo method_field('PATCH'); ?>
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill">
-                            <i class="bi bi-x-circle me-2"></i>Batalkan Pesanan
+                        <button type="submit" class="btn-action btn-danger">
+                            <i class="bi bi-x-circle"></i> Batalkan Pesanan
                         </button>
                     </form>
                     <?php endif; ?>
                     
                     <?php if($order->status_pesan == 'Selesai'): ?>
-                    <button class="btn btn-success w-100 rounded-pill" onclick="window.print()">
-                        <i class="bi bi-printer me-2"></i>Cetak Struk
+                    <button class="btn-action btn-outline" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Cetak Struk
                     </button>
                     <?php endif; ?>
                     
                     <a href="https://wa.me/6285842517974?text=Halo%20Fakhri%20Kitchen,%20saya%20mau%20tanya%20tentang%20pesanan%20<?php echo e($order->no_resi); ?>" 
-                       class="btn btn-outline-success w-100 rounded-pill" target="_blank">
-                        <i class="bi bi-whatsapp me-2"></i>Hubungi Kami
+                       class="btn-action btn-primary" target="_blank">
+                        <i class="bi bi-whatsapp"></i> Hubungi Kami
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
-<?php $__env->startPush('styles'); ?>
-<style>
-    .card-modern { background: white; border: none; border-radius: 20px; box-shadow: 0 5px 20px rgba(112, 144, 176, 0.08); }
-    .table-modern { margin-bottom: 0; }
-    .table-modern thead th { background: #f8f9fa; color: #a3aed0; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; border: none; }
-    .table-modern tbody td { padding: 1rem; vertical-align: middle; color: #2b3674; font-weight: 500; border-bottom: 1px solid #f0f2f5; }
-    .table-modern tbody tr:last-child td { border-bottom: none; }
-    @media print {
-        .no-print { display: none !important; }
-        .card-modern { box-shadow: none !important; border: 1px solid #ddd !important; }
-    }
-</style>
-<?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\SAAS-AKHIR\resources\views/customer/order-detail.blade.php ENDPATH**/ ?>

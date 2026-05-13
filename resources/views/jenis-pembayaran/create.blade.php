@@ -1,5 +1,4 @@
-@extends('layouts.app')
-
+@extends('layouts.admin')  {{-- ✅ BENAR --}}
 @section('title', 'Tambah Jenis Pembayaran')
 
 @section('content')

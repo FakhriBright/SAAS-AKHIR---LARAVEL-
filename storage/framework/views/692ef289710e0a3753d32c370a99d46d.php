@@ -55,9 +55,25 @@
             <li class="nav-item"><a class="nav-link <?php echo e(request()->routeIs('pelanggans.*') ? 'active' : ''); ?>" href="<?php echo e(route('pelanggans.index')); ?>"><i class="bi bi-people-fill"></i> Data Pelanggan</a></li>
             <li class="nav-item"><a class="nav-link <?php echo e(request()->routeIs('pemesanans.*') ? 'active' : ''); ?>" href="<?php echo e(route('pemesanans.index')); ?>"><i class="bi bi-cart-check-fill"></i> Pemesanan</a></li>
             <li class="nav-item"><a class="nav-link <?php echo e(request()->routeIs('pengirimans.*') ? 'active' : ''); ?>" href="<?php echo e(route('pengirimans.index')); ?>"><i class="bi bi-truck-front-fill"></i> Pengiriman</a></li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo e(request()->routeIs('jenis-pembayaran.*') ? 'active' : ''); ?>" href="<?php echo e(route('jenis-pembayaran.index')); ?>">
+                    <i class="bi bi-credit-card-2-front"></i> Metode Pembayaran
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo e(request()->routeIs('detail-jenis-pembayaran.*') ? 'active' : ''); ?>" href="<?php echo e(route('detail-jenis-pembayaran.index')); ?>">
+                    <i class="bi bi-receipt"></i> Detail Pembayaran
+                </a>
+            </li>
+            
         </ul>
         <div class="mt-auto pt-4">
-            <form action="<?php echo e(route('logout')); ?>" method="POST"><?php echo csrf_field(); ?><button type="submit" class="btn-logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></form>
+            <form action="<?php echo e(route('logout')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+            </form>
         </div>
     </div>
 
@@ -67,7 +83,10 @@
                 <h6 class="mb-0 fw-bold text-dark">Welcome back, <?php echo e(Auth::user()->name); ?>!</h6>
                 <small class="text-muted">Admin Catering</small>
             </div>
-            <div class="badge bg-light text-dark p-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i> <?php echo e(now()->format('d M Y')); ?></div>
+            <div class="badge bg-light text-dark p-2 rounded-pill">
+                <i class="bi bi-calendar3 me-1"></i> <?php echo e(now()->format('d M Y')); ?>
+
+            </div>
         </div>
         <?php echo $__env->yieldContent('content'); ?>
     </div>

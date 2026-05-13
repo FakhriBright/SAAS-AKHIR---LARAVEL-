@@ -1,11 +1,15 @@
 <?php $__env->startSection('title', 'Pengiriman'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="row mb-4">
-    <div class="col-md-6">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
         <h4 class="fw-bold mb-1">Pengiriman</h4>
         <p class="text-muted mb-0">Monitoring status pengiriman kurir.</p>
     </div>
+    
+    <a href="<?php echo e(route('pengirimans.create')); ?>" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-circle me-2"></i>Tambah Pengiriman
+    </a>
 </div>
 
 <div class="card-modern p-4">
@@ -18,37 +22,55 @@
                     <th>Tgl Kirim</th>
                     <th>Tgl Tiba</th>
                     <th>Status</th>
-                    <th class="text-end pe-4">Aksi</th>
+                    <th class="pe-4 text-end">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <?php $__empty_1 = true; $__currentLoopData = $pengirimans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kirim): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php $__empty_1 = true; $__currentLoopData = $pengirimans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pengiriman): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <tr>
                     <td class="ps-4">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-secondary fw-bold" style="width: 35px; height: 35px;">
-                                <i class="bi bi-person"></i>
+                            <div class="bg-light rounded-circle p-2">
+                                <i class="bi bi-person text-dark"></i>
                             </div>
-                            <div class="fw-bold"><?php echo e($kirim->user->name ?? 'Admin'); ?></div>
+                            <span class="fw-bold"><?php echo e($pengiriman->kurir->name ?? $pengiriman->kurir->nama_kurir ?? '-'); ?></span>
                         </div>
                     </td>
-                    <td class="fw-bold text-primary"><?php echo e($kirim->pemesanan->no_resi ?? '-'); ?></td>
-                    <td><?php echo e($kirim->tgl_kirim->format('d/m/Y')); ?></td>
-                    <td><?php echo e($kirim->tgl_tiba ? $kirim->tgl_tiba->format('d/m/Y') : '-'); ?></td>
                     <td>
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
-                            <?php echo e($kirim->status_kirim); ?>
+                        <a href="<?php echo e(route('pemesanans.show', $pengiriman->pemesanan->id)); ?>" class="text-primary fw-bold text-decoration-none">
+                            <?php echo e($pengiriman->pemesanan->no_resi ?? '-'); ?>
+
+                        </a>
+                    </td>
+                    <td><?php echo e($pengiriman->tanggal_kirim ? $pengiriman->tanggal_kirim->format('d/m/Y') : '-'); ?></td>
+                    <td><?php echo e($pengiriman->tanggal_tiba ? $pengiriman->tanggal_tiba->format('d/m/Y') : '-'); ?></td>
+                    <td>
+                        <?php
+                            $statusClass = match($pengiriman->status_pengiriman) {
+                                'Menunggu Kurir' => 'secondary',
+                                'Sedang Dikirim' => 'primary',
+                                'Tiba Ditujuan' => 'success',
+                                default => 'light'
+                            };
+                        ?>
+                        <span class="badge bg-<?php echo e($statusClass); ?> bg-opacity-10 text-<?php echo e($statusClass); ?> px-2 py-1 rounded-pill small">
+                            <?php echo e($pengiriman->status_pengiriman); ?>
 
                         </span>
                     </td>
-                    <td class="text-end pe-4">
-                        <a href="<?php echo e(route('pengirimans.show', $kirim->id)); ?>" class="btn btn-sm btn-light text-primary">
-                            <i class="bi bi-eye me-1"></i> Detail
-                        </a>
+                    <td class="pe-4 text-end">
+                        <div class="btn-group">
+                            <a href="<?php echo e(route('pengirimans.edit', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-warning" title="Edit">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a href="<?php echo e(route('pengirimans.show', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-primary" title="Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data pengiriman.</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data pengiriman</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

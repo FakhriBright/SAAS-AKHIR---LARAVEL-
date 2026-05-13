@@ -4,23 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengiriman;
 use App\Models\Pemesanan;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PengirimanController extends Controller
 {
+    /**
+     * Helper: Ambil list kurir
+     */
+    private function getKurirs()
+    {
+        if (class_exists('App\Models\Kurir') || (Schema::hasTable('kursors'))) {
+            return \App\Models\Kurir::all();
+        }
+        return User::all();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $pengirimans = Pengiriman::with(['pemesanan.pelanggan', 'user'])
-                        ->latest()
-                        ->get();
-
+        $pengirimans = Pengiriman::with(['pemesanan.pelanggan'])->latest()->get();
         return view('pengirimans.index', compact('pengirimans'));
     }
 
@@ -29,13 +36,12 @@ class PengirimanController extends Controller
      */
     public function create()
     {
-        // Tampilkan pesanan yang siap dikirim & belum punya data pengiriman
-        $pemesanan = Pemesanan::with('pelanggan')
-                    ->whereIn('status_pesan', ['Sedang Diproses', 'Menunggu Kurir'])
-                    ->whereDoesntHave('pengiriman')
-                    ->get();
-
-        return view('pengirimans.create', compact('pemesanan'));
+        $pemesanans = Pemesanan::whereIn('status_pesan', ['Menunggu Kurir', 'Sedang Diproses', 'Menunggu Konfirmasi'])
+            ->with('pelanggan')
+            ->get();
+        $kurirs = $this->getKurirs();
+        
+        return view('pengirimans.create', compact('pemesanans', 'kurirs'));
     }
 
     /**
@@ -43,45 +49,38 @@ class PengirimanController extends Controller
      */
     public function store(Request $request)
     {
+        // ✅ FIX: Ganti 'id_pemesanan' jadi 'pemesanan_id' (sesuai kolom database)
         $validated = $request->validate([
-            'pemesanan_id' => 'required|exists:pemesanans,id|unique:pengirimans,pemesanan_id',
-            'tgl_kirim'    => 'required|date',
-            'status_kirim' => 'required|in:Sedang Dikirim,Tiba Ditujuan',
-            // Wajib foto jika status = Tiba Ditujuan, opsional jika Sedang Dikirim
-            'bukti_foto'   => 'required_if:status_kirim,Tiba Ditujuan|image|max:2048',
-        ], [
-            'pemesanan_id.unique'  => 'Pesanan ini sudah memiliki data pengiriman.',
-            'bukti_foto.required_if' => 'Foto bukti wajib diupload saat status "Tiba Ditujuan".',
-            'bukti_foto.image'     => 'File harus berupa gambar (JPG, PNG, JPEG, GIF).',
-            'bukti_foto.max'       => 'Ukuran foto maksimal 2MB.',
+            'pemesanan_id' => 'required|exists:pemesanans,id', // ✅ Hapus unique kalau nggak perlu
+            'kurir_id' => 'required|exists:users,id', // ✅ Ganti 'id_kurir' jadi 'kurir_id'
+            'tanggal_kirim' => 'required|date',
+            'status_pengiriman' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan',
+            'tanggal_tiba' => 'nullable|date|after_or_equal:tanggal_kirim',
         ]);
 
         DB::beginTransaction();
         try {
-            // Handle upload foto
-            if ($request->hasFile('bukti_foto')) {
-                $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
-            }
+            // ✅ FIX: Pakai nama field yang sesuai database
+            $pengiriman = Pengiriman::create([
+                'pemesanan_id' => $validated['pemesanan_id'],
+                'kurir_id' => $validated['kurir_id'],
+                'tanggal_kirim' => $validated['tanggal_kirim'],
+                'tanggal_tiba' => $validated['tanggal_tiba'] ?? null,
+                'status_pengiriman' => $validated['status_pengiriman'],
+            ]);
 
-            // Catat siapa yang input data
-            $validated['id_user'] = Auth::id();
-
-            // Simpan data pengiriman
-            $pengiriman = Pengiriman::create($validated);
-
-            // Update status pemesanan sesuai status kirim
-            $newStatusPesan = $validated['status_kirim'] == 'Tiba Ditujuan' ? 'Selesai' : 'Menunggu Kurir';
-            $pengiriman->pemesanan->update(['status_pesan' => $newStatusPesan]);
+            // Update status pesanan
+            $pemesanan = Pemesanan::findOrFail($validated['pemesanan_id']);
+            $pemesanan->update([
+                'status_pesan' => $validated['status_pengiriman'] === 'Tiba Ditujuan' ? 'Selesai' : 'Sedang Dikirim'
+            ]);
 
             DB::commit();
-
             return redirect()->route('pengirimans.index')
-                ->with('success', 'Data pengiriman berhasil ditambahkan!');
-
+                ->with('success', '✅ Data pengiriman berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Pengiriman Store Error: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
         }
     }
 
@@ -90,7 +89,7 @@ class PengirimanController extends Controller
      */
     public function show(Pengiriman $pengiriman)
     {
-        $pengiriman->load(['pemesanan.pelanggan', 'pemesanan.detailPemesanans.paket', 'user']);
+        $pengiriman->load(['pemesanan.pelanggan', 'pemesanan.detailPemesanans.paket']);
         return view('pengirimans.show', compact('pengiriman'));
     }
 
@@ -99,9 +98,10 @@ class PengirimanController extends Controller
      */
     public function edit(Pengiriman $pengiriman)
     {
-        $pengiriman->load('pemesanan.pelanggan');
-        $pemesanan = Pemesanan::with('pelanggan')->get();
-        return view('pengirimans.edit', compact('pengiriman', 'pemesanan'));
+        $pemesanans = Pemesanan::with('pelanggan')->get();
+        $kurirs = $this->getKurirs();
+        
+        return view('pengirimans.edit', compact('pengiriman', 'pemesanans', 'kurirs'));
     }
 
     /**
@@ -110,45 +110,41 @@ class PengirimanController extends Controller
     public function update(Request $request, Pengiriman $pengiriman)
     {
         $validated = $request->validate([
-            'pemesanan_id' => 'required|exists:pemesanans,id|unique:pengirimans,pemesanan_id,' . $pengiriman->id,
-            'tgl_kirim'    => 'required|date',
-            'status_kirim' => 'required|in:Sedang Dikirim,Tiba Ditujuan',
-            'bukti_foto'   => 'required_if:status_kirim,Tiba Ditujuan|image|max:2048',
-        ], [
-            'bukti_foto.required_if' => 'Foto bukti wajib diupload saat status "Tiba Ditujuan".',
-            'bukti_foto.image'       => 'File harus berupa gambar (JPG, PNG, JPEG, GIF).',
-            'bukti_foto.max'         => 'Ukuran foto maksimal 2MB.',
+            'pemesanan_id' => 'required|exists:pemesanans,id',
+            'kurir_id' => 'required|exists:users,id',
+            'tanggal_kirim' => 'required|date',
+            'tanggal_tiba' => 'nullable|date|after_or_equal:tanggal_kirim',
+            'status_pengiriman' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan',
         ]);
 
         DB::beginTransaction();
         try {
-            // Handle upload foto baru & hapus foto lama
-            if ($request->hasFile('bukti_foto')) {
-                if ($pengiriman->bukti_foto) {
-                    Storage::disk('public')->delete($pengiriman->bukti_foto);
-                }
-                $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
-            }
+            $pengiriman->update([
+                'pemesanan_id' => $validated['pemesanan_id'],
+                'kurir_id' => $validated['kurir_id'],
+                'tanggal_kirim' => $validated['tanggal_kirim'],
+                'tanggal_tiba' => $validated['tanggal_tiba'] ?? null,
+                'status_pengiriman' => $validated['status_pengiriman'],
+            ]);
 
-            // Catat siapa yang update data
-            $validated['id_user'] = Auth::id();
-
-            $pengiriman->update($validated);
-
-            // Jika status berubah jadi Tiba Ditujuan, tutup pemesanan
-            if ($validated['status_kirim'] == 'Tiba Ditujuan') {
-                $pengiriman->pemesanan->update(['status_pesan' => 'Selesai']);
+            // Sinkronisasi status pesanan
+            $pemesanan = Pemesanan::find($validated['pemesanan_id']);
+            if ($pemesanan) {
+                $newOrderStatus = match($validated['status_pengiriman']) {
+                    'Menunggu Kurir' => 'Menunggu Kurir',
+                    'Sedang Dikirim' => 'Sedang Dikirim',
+                    'Tiba Ditujuan' => 'Selesai',
+                    default => $pemesanan->status_pesan
+                };
+                $pemesanan->update(['status_pesan' => $newOrderStatus]);
             }
 
             DB::commit();
-
             return redirect()->route('pengirimans.index')
-                ->with('success', 'Data pengiriman berhasil diupdate!');
-
+                ->with('success', '✅ Data pengiriman berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Pengiriman Update Error: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
+            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
         }
     }
 
@@ -158,21 +154,11 @@ class PengirimanController extends Controller
     public function destroy(Pengiriman $pengiriman)
     {
         try {
-            DB::beginTransaction();
-
-            // Hapus file foto jika ada
-            if ($pengiriman->bukti_foto) {
-                Storage::disk('public')->delete($pengiriman->bukti_foto);
-            }
-
             $pengiriman->delete();
-            DB::commit();
-
             return redirect()->route('pengirimans.index')
-                ->with('success', 'Data pengiriman berhasil dihapus!');
+                ->with('success', '✅ Data pengiriman berhasil dihapus.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+            return back()->with('error', '❌ Gagal menghapus: ' . $e->getMessage());
         }
     }
 }

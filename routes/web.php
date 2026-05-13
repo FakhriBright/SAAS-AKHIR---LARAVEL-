@@ -31,7 +31,7 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
-// 📄 Static Pages (Anchor links to landing page sections)
+// 📄 Static Pages
 Route::get('/tentang-kami', function () {
     return redirect()->route('home');
 })->name('about');
@@ -57,7 +57,7 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.pr
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// 🎯 Home Redirect (Stay on landing page)
+// 🎯 Home Redirect
 Route::get('/home', function () {
     return view('landing');
 })->name('home.redirect');
@@ -65,7 +65,6 @@ Route::get('/home', function () {
 /*
 |--------------------------------------------------------------------------
 | ADMIN / OWNER / KURIR ROUTES
-| Middleware: auth:web + check.role
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'check.role:admin,owner,kurir'])->group(function () {
@@ -98,19 +97,15 @@ Route::middleware(['auth:web', 'check.role:admin,owner,kurir'])->group(function 
 /*
 |--------------------------------------------------------------------------
 | CUSTOMER ROUTES (Guard: pelanggan)
-| Prefix: /customer
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:pelanggan'])->prefix('customer')->name('customer.')->group(function () {
 
-    // ✅ DASHBOARD PELANGGAN
+    // 🏠 Dashboard
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('dashboard');
 
-    // 📦 Catalog & Orders
+    // 📦 Catalog
     Route::get('/catalog', [CustomerController::class, 'catalog'])->name('catalog');
-    Route::get('/orders', [CustomerController::class, 'orders'])->name('orders');
-    Route::get('/order/{order}', [CustomerController::class, 'showOrder'])->name('order.show');
-    Route::patch('/order/{order}/cancel', [CustomerController::class, 'cancelOrder'])->name('order.cancel');
 
     // 🛒 Shopping Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -119,18 +114,23 @@ Route::middleware(['auth:pelanggan'])->prefix('customer')->name('customer.')->gr
     Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
     Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
-    // 💳 Checkout & Order Processing
+    // 💳 Checkout & Order
     Route::get('/checkout', [CustomerController::class, 'checkout'])->name('checkout');
     Route::post('/order', [CustomerController::class, 'storeOrder'])->name('order.store');
 
-    // 👤 Profile Management
+    // 📋 My Orders
+    Route::get('/orders', [CustomerController::class, 'orders'])->name('orders');
+    Route::get('/order/{order}', [CustomerController::class, 'showOrder'])->name('order.show');
+    Route::patch('/order/{order}/cancel', [CustomerController::class, 'cancelOrder'])->name('order.cancel');
+
+    // 👤 Profile
     Route::get('/profile', [CustomerController::class, 'profile'])->name('profile');
     Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('profile.update');
 });
 
 /*
 |--------------------------------------------------------------------------
-| FALLBACK ROUTE (404)
+| FALLBACK ROUTE
 |--------------------------------------------------------------------------
 */
 Route::fallback(function () {
