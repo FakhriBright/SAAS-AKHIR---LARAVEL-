@@ -16,51 +16,67 @@
         </div>
         <?php endif; ?>
         
-        <form action="<?php echo e(route('pengirimans.store')); ?>" method="POST">
+        <form action="<?php echo e(route('pengirimans.store')); ?>" method="POST" enctype="multipart/form-data">
             <?php echo csrf_field(); ?>
             
-         <div class="mb-3">
-    <label class="form-label fw-bold">Pilih Pesanan <span class="text-danger">*</span></label>
-    <select name="pemesanan_id" class="form-select" required>
-        <option value="">-- Pilih Pesanan --</option>
-        <?php $__currentLoopData = $pemesanans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pemesanan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <option value="<?php echo e($pemesanan->id); ?>" <?php echo e(old('pemesanan_id') == $pemesanan->id ? 'selected' : ''); ?>>
-            <?php echo e($pemesanan->no_resi); ?> - <?php echo e($pemesanan->pelanggan->nama_pelanggan ?? 'Pelanggan'); ?>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Pilih Pesanan <span class="text-danger">*</span></label>
+                
+                <select name="pemesanan_id" class="form-select" required>
+                    <option value="">-- Pilih Pesanan --</option>
+                    <?php $__currentLoopData = $pemesanans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pemesanan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($pemesanan->id); ?>" <?php echo e(old('pemesanan_id') == $pemesanan->id ? 'selected' : ''); ?>>
+                        <?php echo e($pemesanan->no_resi); ?> - <?php echo e($pemesanan->pelanggan->nama_pelanggan ?? 'Pelanggan'); ?>
 
-        </option>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </select>
-</div>
+                    </option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
+                
+                <select name="id_user" class="form-select" required>
+                    <option value="">-- Pilih Kurir --</option>
+                    <?php $__currentLoopData = $kurirs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kurir): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($kurir->id); ?>" <?php echo e(old('id_user') == $kurir->id ? 'selected' : ''); ?>>
+                        <?php echo e($kurir->name ?? $kurir->nama_kurir ?? $kurir->nama_pelanggan ?? 'Kurir'); ?>
 
-<div class="mb-3">
-    <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
-    <select name="kurir_id" class="form-select" required>
-        <option value="">-- Pilih Kurir --</option>
-        <?php $__currentLoopData = $kurirs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kurir): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <option value="<?php echo e($kurir->id); ?>" <?php echo e(old('kurir_id') == $kurir->id ? 'selected' : ''); ?>>
-            <?php echo e($kurir->name ?? $kurir->nama_kurir ?? $kurir->nama_pelanggan); ?>
-
-        </option>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </select>
-</div>
+                    </option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+            </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
+                    
                     <label class="form-label fw-bold">Tanggal Kirim <span class="text-danger">*</span></label>
-                    <input type="date" name="tanggal_kirim" class="form-control" value="<?php echo e(old('tanggal_kirim', date('Y-m-d'))); ?>" required>
+                    <input type="date" name="tgl_kirim" class="form-control" value="<?php echo e(old('tgl_kirim', date('Y-m-d'))); ?>" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Status Pengiriman</label>
-                    <select name="status_pengiriman" class="form-select">
-                        <option value="Menunggu Kurir" <?php echo e(old('status_pengiriman') == 'Menunggu Kurir' ? 'selected' : ''); ?>>Menunggu Kurir</option>
-                        <option value="Sedang Dikirim" <?php echo e(old('status_pengiriman') == 'Sedang Dikirim' ? 'selected' : ''); ?>>Sedang Dikirim</option>
-                        <option value="Tiba Ditujuan" <?php echo e(old('status_pengiriman') == 'Tiba Ditujuan' ? 'selected' : ''); ?>>Tiba Ditujuan</option>
-                    </select>
+                    
+                    <label class="form-label fw-bold">Tanggal Tiba (Opsional)</label>
+                    <input type="date" name="tgl_tiba" class="form-control" value="<?php echo e(old('tgl_tiba')); ?>">
                 </div>
             </div>
             
-            <div class="d-flex gap-2 mt-3">
+            <div class="mb-3">
+                
+                <label class="form-label fw-bold">Status Pengiriman</label>
+                <select name="status_kirim" class="form-select">
+                    <option value="Menunggu Kurir" <?php echo e(old('status_kirim') == 'Menunggu Kurir' ? 'selected' : ''); ?>>Menunggu Kurir</option>
+                    <option value="Sedang Dikirim" <?php echo e(old('status_kirim') == 'Sedang Dikirim' ? 'selected' : ''); ?>>Sedang Dikirim</option>
+                    <option value="Tiba Ditujuan" <?php echo e(old('status_kirim') == 'Tiba Ditujuan' ? 'selected' : ''); ?>>Tiba Ditujuan</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Bukti Foto (Opsional)</label>
+                <input type="file" name="bukti_foto" class="form-control" accept="image/*">
+                <small class="text-muted">Format: JPG, PNG. Max: 2MB</small>
+            </div>
+            
+            <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary px-4">
                     <i class="bi bi-check-circle me-2"></i>Simpan
                 </button>

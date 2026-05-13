@@ -18,49 +18,65 @@
         </div>
         @endif
         
-        <form action="{{ route('pengirimans.store') }}" method="POST">
+        <form action="{{ route('pengirimans.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
-         <div class="mb-3">
-    <label class="form-label fw-bold">Pilih Pesanan <span class="text-danger">*</span></label>
-    <select name="pemesanan_id" class="form-select" required>
-        <option value="">-- Pilih Pesanan --</option>
-        @foreach($pemesanans as $pemesanan)
-        <option value="{{ $pemesanan->id }}" {{ old('pemesanan_id') == $pemesanan->id ? 'selected' : '' }}>
-            {{ $pemesanan->no_resi }} - {{ $pemesanan->pelanggan->nama_pelanggan ?? 'Pelanggan' }}
-        </option>
-        @endforeach
-    </select>
-</div>
-
-<div class="mb-3">
-    <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
-    <select name="kurir_id" class="form-select" required>
-        <option value="">-- Pilih Kurir --</option>
-        @foreach($kurirs as $kurir)
-        <option value="{{ $kurir->id }}" {{ old('kurir_id') == $kurir->id ? 'selected' : '' }}>
-            {{ $kurir->name ?? $kurir->nama_kurir ?? $kurir->nama_pelanggan }}
-        </option>
-        @endforeach
-    </select>
-</div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Pilih Pesanan <span class="text-danger">*</span></label>
+                {{-- ✅ FIX: name="pemesanan_id" --}}
+                <select name="pemesanan_id" class="form-select" required>
+                    <option value="">-- Pilih Pesanan --</option>
+                    @foreach($pemesanans as $pemesanan)
+                    <option value="{{ $pemesanan->id }}" {{ old('pemesanan_id') == $pemesanan->id ? 'selected' : '' }}>
+                        {{ $pemesanan->no_resi }} - {{ $pemesanan->pelanggan->nama_pelanggan ?? 'Pelanggan' }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
+                {{-- ✅ FIX: name="id_user" --}}
+                <select name="id_user" class="form-select" required>
+                    <option value="">-- Pilih Kurir --</option>
+                    @foreach($kurirs as $kurir)
+                    <option value="{{ $kurir->id }}" {{ old('id_user') == $kurir->id ? 'selected' : '' }}>
+                        {{ $kurir->name ?? $kurir->nama_kurir ?? $kurir->nama_pelanggan ?? 'Kurir' }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
+                    {{-- ✅ FIX: name="tgl_kirim" --}}
                     <label class="form-label fw-bold">Tanggal Kirim <span class="text-danger">*</span></label>
-                    <input type="date" name="tanggal_kirim" class="form-control" value="{{ old('tanggal_kirim', date('Y-m-d')) }}" required>
+                    <input type="date" name="tgl_kirim" class="form-control" value="{{ old('tgl_kirim', date('Y-m-d')) }}" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Status Pengiriman</label>
-                    <select name="status_pengiriman" class="form-select">
-                        <option value="Menunggu Kurir" {{ old('status_pengiriman') == 'Menunggu Kurir' ? 'selected' : '' }}>Menunggu Kurir</option>
-                        <option value="Sedang Dikirim" {{ old('status_pengiriman') == 'Sedang Dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
-                        <option value="Tiba Ditujuan" {{ old('status_pengiriman') == 'Tiba Ditujuan' ? 'selected' : '' }}>Tiba Ditujuan</option>
-                    </select>
+                    {{-- ✅ FIX: name="tgl_tiba" --}}
+                    <label class="form-label fw-bold">Tanggal Tiba (Opsional)</label>
+                    <input type="date" name="tgl_tiba" class="form-control" value="{{ old('tgl_tiba') }}">
                 </div>
             </div>
             
-            <div class="d-flex gap-2 mt-3">
+            <div class="mb-3">
+                {{-- ✅ FIX: name="status_kirim" --}}
+                <label class="form-label fw-bold">Status Pengiriman</label>
+                <select name="status_kirim" class="form-select">
+                    <option value="Menunggu Kurir" {{ old('status_kirim') == 'Menunggu Kurir' ? 'selected' : '' }}>Menunggu Kurir</option>
+                    <option value="Sedang Dikirim" {{ old('status_kirim') == 'Sedang Dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
+                    <option value="Tiba Ditujuan" {{ old('status_kirim') == 'Tiba Ditujuan' ? 'selected' : '' }}>Tiba Ditujuan</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Bukti Foto (Opsional)</label>
+                <input type="file" name="bukti_foto" class="form-control" accept="image/*">
+                <small class="text-muted">Format: JPG, PNG. Max: 2MB</small>
+            </div>
+            
+            <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary px-4">
                     <i class="bi bi-check-circle me-2"></i>Simpan
                 </button>

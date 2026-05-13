@@ -6,7 +6,6 @@
         <h4 class="fw-bold mb-1">Pengiriman</h4>
         <p class="text-muted mb-0">Monitoring status pengiriman kurir.</p>
     </div>
-    
     <a href="<?php echo e(route('pengirimans.create')); ?>" class="btn btn-primary rounded-pill px-4">
         <i class="bi bi-plus-circle me-2"></i>Tambah Pengiriman
     </a>
@@ -33,7 +32,8 @@
                             <div class="bg-light rounded-circle p-2">
                                 <i class="bi bi-person text-dark"></i>
                             </div>
-                            <span class="fw-bold"><?php echo e($pengiriman->kurir->name ?? $pengiriman->kurir->nama_kurir ?? '-'); ?></span>
+                            
+                            <span class="fw-bold"><?php echo e($pengiriman->user->name ?? $pengiriman->user->nama_pelanggan ?? '-'); ?></span>
                         </div>
                     </td>
                     <td>
@@ -42,11 +42,13 @@
 
                         </a>
                     </td>
-                    <td><?php echo e($pengiriman->tanggal_kirim ? $pengiriman->tanggal_kirim->format('d/m/Y') : '-'); ?></td>
-                    <td><?php echo e($pengiriman->tanggal_tiba ? $pengiriman->tanggal_tiba->format('d/m/Y') : '-'); ?></td>
+                    
+                    <td><?php echo e($pengiriman->tgl_kirim ? $pengiriman->tgl_kirim->format('d/m/Y') : '-'); ?></td>
+                    <td><?php echo e($pengiriman->tgl_tiba ? $pengiriman->tgl_tiba->format('d/m/Y') : '-'); ?></td>
                     <td>
+                        
                         <?php
-                            $statusClass = match($pengiriman->status_pengiriman) {
+                            $statusClass = match($pengiriman->status_kirim) {
                                 'Menunggu Kurir' => 'secondary',
                                 'Sedang Dikirim' => 'primary',
                                 'Tiba Ditujuan' => 'success',
@@ -54,18 +56,14 @@
                             };
                         ?>
                         <span class="badge bg-<?php echo e($statusClass); ?> bg-opacity-10 text-<?php echo e($statusClass); ?> px-2 py-1 rounded-pill small">
-                            <?php echo e($pengiriman->status_pengiriman); ?>
+                            <?php echo e($pengiriman->status_kirim); ?>
 
                         </span>
                     </td>
                     <td class="pe-4 text-end">
                         <div class="btn-group">
-                            <a href="<?php echo e(route('pengirimans.edit', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-warning" title="Edit">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
-                            <a href="<?php echo e(route('pengirimans.show', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-primary" title="Detail">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                            <a href="<?php echo e(route('pengirimans.edit', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-warning"><i class="bi bi-pencil-fill"></i></a>
+                            <a href="<?php echo e(route('pengirimans.show', $pengiriman->id)); ?>" class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></a>
                         </div>
                     </td>
                 </tr>

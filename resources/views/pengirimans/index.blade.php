@@ -8,7 +8,6 @@
         <h4 class="fw-bold mb-1">Pengiriman</h4>
         <p class="text-muted mb-0">Monitoring status pengiriman kurir.</p>
     </div>
-    {{-- ✅ TOMBOL TAMBAH DITAMBAHKAN DISINI --}}
     <a href="{{ route('pengirimans.create') }}" class="btn btn-primary rounded-pill px-4">
         <i class="bi bi-plus-circle me-2"></i>Tambah Pengiriman
     </a>
@@ -35,7 +34,8 @@
                             <div class="bg-light rounded-circle p-2">
                                 <i class="bi bi-person text-dark"></i>
                             </div>
-                            <span class="fw-bold">{{ $pengiriman->kurir->name ?? $pengiriman->kurir->nama_kurir ?? '-' }}</span>
+                            {{-- ✅ FIX: Pakai relasi 'user' --}}
+                            <span class="fw-bold">{{ $pengiriman->user->name ?? $pengiriman->user->nama_pelanggan ?? '-' }}</span>
                         </div>
                     </td>
                     <td>
@@ -43,11 +43,13 @@
                             {{ $pengiriman->pemesanan->no_resi ?? '-' }}
                         </a>
                     </td>
-                    <td>{{ $pengiriman->tanggal_kirim ? $pengiriman->tanggal_kirim->format('d/m/Y') : '-' }}</td>
-                    <td>{{ $pengiriman->tanggal_tiba ? $pengiriman->tanggal_tiba->format('d/m/Y') : '-' }}</td>
+                    {{-- ✅ FIX: Pakai field 'tgl_kirim' dan 'tgl_tiba' --}}
+                    <td>{{ $pengiriman->tgl_kirim ? $pengiriman->tgl_kirim->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $pengiriman->tgl_tiba ? $pengiriman->tgl_tiba->format('d/m/Y') : '-' }}</td>
                     <td>
+                        {{-- ✅ FIX: Pakai field 'status_kirim' --}}
                         @php
-                            $statusClass = match($pengiriman->status_pengiriman) {
+                            $statusClass = match($pengiriman->status_kirim) {
                                 'Menunggu Kurir' => 'secondary',
                                 'Sedang Dikirim' => 'primary',
                                 'Tiba Ditujuan' => 'success',
@@ -55,17 +57,13 @@
                             };
                         @endphp
                         <span class="badge bg-{{ $statusClass }} bg-opacity-10 text-{{ $statusClass }} px-2 py-1 rounded-pill small">
-                            {{ $pengiriman->status_pengiriman }}
+                            {{ $pengiriman->status_kirim }}
                         </span>
                     </td>
                     <td class="pe-4 text-end">
                         <div class="btn-group">
-                            <a href="{{ route('pengirimans.edit', $pengiriman->id) }}" class="btn btn-sm btn-light text-warning" title="Edit">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
-                            <a href="{{ route('pengirimans.show', $pengiriman->id) }}" class="btn btn-sm btn-light text-primary" title="Detail">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                            <a href="{{ route('pengirimans.edit', $pengiriman->id) }}" class="btn btn-sm btn-light text-warning"><i class="bi bi-pencil-fill"></i></a>
+                            <a href="{{ route('pengirimans.show', $pengiriman->id) }}" class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></a>
                         </div>
                     </td>
                 </tr>
