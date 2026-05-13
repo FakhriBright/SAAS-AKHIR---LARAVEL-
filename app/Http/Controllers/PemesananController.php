@@ -139,16 +139,70 @@ class PemesananController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pemesanan $pemesanan)
-    {
-        $validated = $request->validate([
-            'status_pesan' => 'required|string',
-            'catatan_admin' => 'nullable|string',
-        ]);
+/**
+ * Update the specified resource in storage.
+ */
+public function update(Request $request, Pemesanan $pemesanan)
+{
+    $validated = $request->validate([
+        'id_pelanggan'   => 'required|exists:pelanggans,id',
+        'id_jenis_bayar' => 'required|exists:jenis_pembayarans,id',
+        'tgl_pesan'      => 'required|date',
+        'status_pesan'   => 'required|string',
+        'catatan'        => 'nullable|string|max:1000',
+        'paket_id'       => 'required|array|min:1',
+        'paket_id.*'     => 'required|exists:pakets,id',
+        'jumlah'         => 'required|array|min:1',
+        'jumlah.*'       => 'required|integer|min:1',
+    ]);
 
-        $pemesanan->update($validated);
-        return back()->with('success', '✅ Status pesanan berhasil diupdate.');
+    DB::beginTransaction();
+    try {
+        // Hitung ulang total
+        $totalBayar = 0;
+        
+        // Update detail pemesanan
+        $pemesanan->detailPemesanans()->delete(); // Hapus detail lama
+        
+        foreach ($validated['paket_id'] as $index => $paketId) {
+            $paket = Paket::findOrFail($paketId);
+            $qty = $validated['jumlah'][$index];
+            $subtotal = $paket->harga_paket * $qty;
+            $totalBayar += $subtotal;
+            
+            DetailPemesanan::create([
+                'pemesanan_id' => $pemesanan->id,
+                'paket_id'     => $paketId,
+                'jumlah'       => $qty,
+                'subtotal'     => $subtotal,
+            ]);
+        }
+        
+        // Update data utama
+        $pemesanan->update([
+            'id_pelanggan'   => $validated['id_pelanggan'],
+            'id_jenis_bayar' => $validated['id_jenis_bayar'],
+            'tgl_pesan'      => $validated['tgl_pesan'],
+            'status_pesan'   => $validated['status_pesan'],
+            'total_bayar'    => $totalBayar,
+            'catatan'        => $validated['catatan'] ?? null,
+        ]);
+        
+        DB::commit();
+        
+        // ✅ REDIRECT KE INDEX DENGAN PESAN SUKSES
+        return redirect()->route('pemesanans.index')
+            ->with('success', '✅ Pesanan ' . $pemesanan->no_resi . ' berhasil diupdate!');
+            
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        // ❌ KEMBALI KE FORM EDIT DENGAN ERROR
+        return back()
+            ->withInput()
+            ->with('error', '❌ Gagal update: ' . $e->getMessage());
     }
+}
 
     /**
      * Remove the specified resource from storage.

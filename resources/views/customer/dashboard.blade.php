@@ -1,279 +1,165 @@
-@extends('layouts.customer')
+@extends('layouts.app')
 
-@section('title', 'Dashboard - Fakhri Kitchen')
+@section('title', 'Dashboard Pelanggan')
 
 @section('content')
-<div class="container-fluid px-0"> 
-    {{-- Welcome Section with Stats --}}
+<div class="container py-5">
+    {{-- Welcome Header --}}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                    <h2 class="fw-bold mb-1" style="color: var(--primary-dark);">
-                        Selamat Datang, {{ explode(' ', Auth::guard('pelanggan')->user()->nama_pelanggan)[0] }}! 👋
-                    </h2>
-                    <p class="text-muted mb-0">Kelola pesanan catering Anda dengan mudah</p>
-                </div>
-                <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary btn-lg shadow-sm">
-                    <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Baru
-                </a>
-            </div>
+            <h2 class="fw-bold mb-1">Selamat Datang, {{ auth()->guard('pelanggan')->user()->nama_pelanggan }}! 👋</h2>
+            <p class="text-muted mb-0">Kelola pesanan catering Anda dengan mudah</p>
         </div>
     </div>
 
-    {{-- Stats Cards - Enhanced --}}
+    {{-- Stats Cards --}}
     <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card fk-card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body p-4 text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75 text-uppercase small fw-semibold">Total Pesanan</p>
-                            <h2 class="fw-bold mb-0">{{ $totalPesanan ?? 0 }}</h2>
-                            <small class="opacity-75">Pesanan sepanjang waktu</small>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-cart-check fs-2"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="card-modern p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small fw-bold">Total Pesanan</p>
+                        <h3 class="fw-bold mb-0">{{ $totalPesanan }}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-cart-check text-primary fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card fk-card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <div class="card-body p-4 text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75 text-uppercase small fw-semibold">Pesanan Aktif</p>
-                            <h2 class="fw-bold mb-0">{{ $pesananAktif ?? 0 }}</h2>
-                            <small class="opacity-75">Sedang diproses</small>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-clock-history fs-2"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="card-modern p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small fw-bold">Pesanan Aktif</p>
+                        <h3 class="fw-bold mb-0">{{ $pesananAktif }}</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-clock text-warning fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card fk-card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                <div class="card-body p-4 text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75 text-uppercase small fw-semibold">Total Belanja</p>
-                            <h3 class="fw-bold mb-0">Rp {{ number_format($totalBelanja ?? 0, 0, ',', '.') }}</h3>
-                            <small class="opacity-75">Pesanan selesai</small>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-wallet2 fs-2"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="card-modern p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small fw-bold">Pesanan Selesai</p>
+                        <h3 class="fw-bold mb-0">{{ $pesananSelesai }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-modern p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small fw-bold">Total Belanja</p>
+                        <h3 class="fw-bold mb-0 text-success">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-wallet text-success fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Quick Actions & Recent Orders --}}
     <div class="row g-4">
-        {{-- Profile Info Card --}}
-        <div class="col-lg-5">
-            <div class="card fk-card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h5 class="mb-0 fw-bold" style="color: var(--primary-dark);">
-                        <i class="bi bi-person-badge me-2"></i>Informasi Profil
-                    </h5>
-                </div>
-                <div class="card-body px-4">
-                    <div class="text-center mb-4">
-                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-                            <i class="bi bi-person fs-1" style="color: var(--primary);"></i>
-                        </div>
-                        <h5 class="fw-bold mb-1">{{ $pelanggan->nama_pelanggan }}</h5>
-                        <small class="text-muted">Pelanggan Setia</small>
-                    </div>
-                    
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="d-flex align-items-start p-2 rounded" style="background: #f8f9fa;">
-                                <i class="bi bi-envelope text-primary me-3 mt-1"></i>
-                                <div>
-                                    <small class="text-muted d-block">Email</small>
-                                    <span class="fw-medium">{{ $pelanggan->email }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex align-items-start p-2 rounded" style="background: #f8f9fa;">
-                                <i class="bi bi-telephone text-primary me-3 mt-1"></i>
-                                <div>
-                                    <small class="text-muted d-block">Telepon</small>
-                                    <span class="fw-medium">{{ $pelanggan->telepon }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex align-items-start p-2 rounded" style="background: #f8f9fa;">
-                                <i class="bi bi-geo-alt text-primary me-3 mt-1"></i>
-                                <div>
-                                    <small class="text-muted d-block">Alamat</small>
-                                    <span class="fw-medium">
-                                        {{ $pelanggan->alamat1 }}
-                                        @if($pelanggan->alamat2), {{ $pelanggan->alamat2 }}@endif
-                                        @if($pelanggan->alamat3), {{ $pelanggan->alamat3 }}@endif
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <a href="{{ route('customer.profile') }}" class="btn btn-fk-outline w-100 mt-3">
-                        <i class="bi bi-pencil me-2"></i>Edit Profil
+        {{-- Quick Actions --}}
+        <div class="col-md-4">
+            <div class="card-modern p-4 h-100">
+                <h5 class="fw-bold mb-3">Menu Cepat</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('customer.catalog') }}" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-grid me-2"></i>Lihat Katalog
+                    </a>
+                    <a href="{{ route('customer.cart.index') }}" class="btn btn-outline-primary rounded-pill">
+                        <i class="bi bi-cart3 me-2"></i>Keranjang
+                    </a>
+                    <a href="{{ route('customer.orders') }}" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-receipt me-2"></i>Riwayat Pesanan
+                    </a>
+                    <a href="{{ route('customer.profile') }}" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-person me-2"></i>Profil Saya
                     </a>
                 </div>
             </div>
         </div>
 
         {{-- Recent Orders --}}
-        <div class="col-lg-7">
-            <div class="card fk-card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold" style="color: var(--primary-dark);">
-                        <i class="bi bi-clock-history me-2"></i>5 Pesanan Terakhir
-                    </h5>
-                    <a href="{{ route('customer.orders') }}" class="btn btn-sm btn-fk-outline">
-                        Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
+        <div class="col-md-8">
+            <div class="card-modern p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">5 Pesanan Terakhir</h5>
+                    <a href="{{ route('customer.orders') }}" class="btn btn-sm btn-primary rounded-pill">Lihat Semua</a>
+                </div>
+                
+                @if($recentOrders->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>No. Resi</th>
+                                <th>Tanggal</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentOrders as $order)
+                            <tr>
+                                <td class="fw-bold text-primary small">{{ $order->no_resi }}</td>
+                                <td class="small">{{ $order->tgl_pesan->format('d/m/Y') }}</td>
+                                <td class="fw-bold text-success small">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</td>
+                                <td>
+                                    @php
+                                    $badgeClass = match($order->status_pesan) {
+                                        'Menunggu Konfirmasi' => 'warning',
+                                        'Sedang Diproses' => 'info',
+                                        'Menunggu Kurir' => 'secondary',
+                                        'Selesai' => 'success',
+                                        'Dibatalkan' => 'danger',
+                                        default => 'secondary'
+                                    };
+                                    @endphp
+                                    <span class="badge bg-{{ $badgeClass }} bg-opacity-10 text-{{ $badgeClass }} px-3 py-1 rounded-pill small">
+                                        {{ $order->status_pesan }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                    <p class="text-muted mb-3">Belum ada pesanan</p>
+                    <a href="{{ route('customer.catalog') }}" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
                     </a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead style="background: linear-gradient(135deg, var(--cream) 0%, #fff 100%);">
-                                <tr>
-                                    <th class="ps-4 py-3 small text-uppercase text-muted fw-semibold">No. Resi</th>
-                                    <th class="py-3 small text-uppercase text-muted fw-semibold">Tanggal</th>
-                                    <th class="py-3 small text-uppercase text-muted fw-semibold">Total</th>
-                                    <th class="py-3 small text-uppercase text-muted fw-semibold">Status</th>
-                                    <th class="pe-4 text-end py-3 small text-uppercase text-muted fw-semibold">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentOrders ?? [] as $order)
-                                <tr class="border-bottom-light">
-                                    <td class="ps-4 py-3">
-                                        <span class="fw-bold" style="color: var(--primary);">{{ $order->no_resi }}</span>
-                                    </td>
-                                    <td class="py-3">{{ \Carbon\Carbon::parse($order->tgl_pesan)->format('d/m/Y') }}</td>
-                                    <td class="py-3 fw-bold text-success">Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</td>
-                                    <td class="py-3">
-                                        @if($order->status_pesan == 'Menunggu Konfirmasi')
-                                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
-                                                <i class="bi bi-hourglass-split me-1"></i>Menunggu
-                                            </span>
-                                        @elseif($order->status_pesan == 'Sedang Diproses')
-                                            <span class="badge bg-info text-dark px-3 py-2 rounded-pill">
-                                                <i class="bi bi-gear me-1"></i>Diproses
-                                            </span>
-                                        @elseif($order->status_pesan == 'Menunggu Kurir')
-                                            <span class="badge bg-secondary px-3 py-2 rounded-pill">
-                                                <i class="bi bi-truck me-1"></i>Kurir
-                                            </span>
-                                        @elseif($order->status_pesan == 'Selesai')
-                                            <span class="badge bg-success px-3 py-2 rounded-pill">
-                                                <i class="bi bi-check-circle me-1"></i>Selesai
-                                            </span>
-                                        @elseif($order->status_pesan == 'Dibatalkan')
-                                            <span class="badge bg-danger px-3 py-2 rounded-pill">
-                                                <i class="bi bi-x-circle me-1"></i>Batal
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="pe-4 text-end py-3">
-                                        <a href="{{ route('customer.order.detail', $order->id) }}" class="btn btn-sm btn-fk-outline py-1 px-3">
-                                            <i class="bi bi-eye me-1"></i>Detail
-                                        </a>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
-                                        <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
-                                            <i class="bi bi-inbox fs-1 text-muted"></i>
-                                        </div>
-                                        <p class="mb-3">Belum ada pesanan</p>
-                                        <a href="{{ route('customer.order.create') }}" class="btn btn-fk-primary">
-                                            <i class="bi bi-plus-circle me-2"></i>Buat Pesanan Pertama
-                                        </a>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
-
-    {{-- Quick Actions - Enhanced --}}
-    <div class="row g-3 mt-4 mb-5">
-        <div class="col-12">
-            <h5 class="fw-bold mb-3" style="color: var(--primary-dark);">
-                <i class="bi bi-grid-3x3-gap me-2"></i>Menu Cepat
-            </h5>
-        </div>
-        <div class="col-md-3 col-6">
-            <a href="{{ route('customer.catalog') }}" class="card fk-card text-center text-decoration-none text-dark h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="bi bi-grid fs-2" style="color: var(--primary);"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Katalog Paket</h6>
-                    <small class="text-muted">Lihat semua menu</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a href="{{ route('customer.order.create') }}" class="card fk-card text-center text-decoration-none text-dark h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="bi bi-cart-plus fs-2" style="color: var(--primary);"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Pesan Sekarang</h6>
-                    <small class="text-muted">Buat pesanan baru</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a href="{{ route('customer.orders') }}" class="card fk-card text-center text-decoration-none text-dark h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="bi bi-list-check fs-2" style="color: var(--primary);"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Riwayat</h6>
-                    <small class="text-muted">Cek pesanan lama</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="card fk-card text-center text-decoration-none text-dark h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="bi bi-box-arrow-right fs-2 text-danger"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1 text-danger">Logout</h6>
-                    <small class="text-muted">Keluar dari akun</small>
-                </div>
-            </a>
-        </div>
-    </div>
 </div>
-@endsection
 
+{{-- Tambahan CSS untuk card-modern & table-modern jika belum ada di layouts.app --}}
 @push('styles')
 <style>
-    .border-bottom-light { border-bottom: 1px solid #f0f0f0 !important; }
-    .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card:hover { transform: translateY(-2px); }
+    .card-modern { background: white; border: none; border-radius: 20px; box-shadow: 0 5px 20px rgba(112, 144, 176, 0.08); transition: 0.3s; }
+    .card-modern:hover { transform: translateY(-2px); }
+    .table-modern { margin-bottom: 0; }
+    .table-modern thead th { background: #f8f9fa; color: #a3aed0; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 1rem; border: none; }
+    .table-modern tbody td { padding: 1rem; vertical-align: middle; color: #2b3674; font-weight: 500; border-bottom: 1px solid #f0f2f5; }
+    .table-modern tbody tr:last-child td { border-bottom: none; }
+    .table-modern tbody tr:hover { background: #f9fbfd; }
 </style>
 @endpush
+@endsection

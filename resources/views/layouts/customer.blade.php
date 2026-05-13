@@ -3,207 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Fakhri Kitchen Customer')</title>
-
-    {{-- CSS Dependencies --}}
+    <title>@yield('title', 'Fakhri Kitchen')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --fk-primary: #2d6a4f;      /* Hijau Fakhri Kitchen */
-            --fk-primary-dark: #1b4332; /* Hijau Gelap */
-            --fk-light: #d8f3dc;        /* Hijau Muda */
-            --fk-bg: #f8f9fa;           /* Background Abu-abu sangat muda */
-            --sidebar-width: 260px;
-            --sidebar-collapsed: 80px;
-            --topbar-height: 70px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: var(--fk-bg); color: #333; overflow-x: hidden; }
-
-        /* --- SIDEBAR --- */
-        .sidebar {
-            position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width);
-            background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 1050; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column;
-        }
-
-        .sidebar-brand {
-            height: var(--topbar-height); display: flex; align-items: center; padding: 0 1.5rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .sidebar-brand h4 {
-            font-family: 'Playfair Display', serif; color: var(--fk-primary-dark);
-            margin: 0; font-weight: 700; font-size: 1.2rem; white-space: nowrap;
-        }
-        .sidebar-brand i { font-size: 1.5rem; color: var(--fk-primary); margin-right: 10px; }
-
-        .sidebar-menu { list-style: none; padding: 1.5rem 1rem; flex: 1; }
-        .sidebar-menu li { margin-bottom: 0.5rem; }
-
-        .sidebar-menu a {
-            display: flex; align-items: center; padding: 0.9rem 1rem;
-            color: #666; text-decoration: none; border-radius: 10px;
-            transition: all 0.2s; font-weight: 500; font-size: 0.95rem;
-        }
-
-        .sidebar-menu a i { margin-right: 12px; font-size: 1.2rem; transition: margin 0.2s; }
-        .sidebar-menu a:hover { background: var(--fk-light); color: var(--fk-primary); }
-        .sidebar-menu a.active { background: var(--fk-primary); color: white; box-shadow: 0 4px 12px rgba(45,106,79,0.3); }
-        .sidebar-menu a.active i { color: white; }
-
-        /* --- MAIN CONTENT AREA --- */
-        .main-content {
-            margin-left: var(--sidebar-width); transition: all 0.3s;
-            min-height: 100vh; display: flex; flex-direction: column;
-        }
-
-        /* --- TOP BAR --- */
-        .topbar {
-            height: var(--topbar-height); background: white; padding: 0 2rem;
-            display: flex; align-items: center; justify-content: space-between;
-            position: sticky; top: 0; z-index: 1040; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-
-        .toggle-sidebar {
-            background: none; border: none; font-size: 1.5rem; color: #666; cursor: pointer;
-        }
-
-        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .user-avatar {
-            width: 40px; height: 40px; border-radius: 50%; background: var(--fk-light);
-            color: var(--fk-primary); display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 1rem;
-        }
-        .user-info { display: flex; flex-direction: column; line-height: 1.2; }
-        .user-name { font-weight: 600; font-size: 0.9rem; color: #333; }
-        .user-role { font-size: 0.75rem; color: #888; }
-
-        /* --- CONTENT WRAPPER --- */
-        .page-content { padding: 2rem; flex: 1; }
-
-        /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 240px; }
-            .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; }
-            .overlay {
-                position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1045; display: none;
-            }
-            .overlay.active { display: block; }
-            .page-content { padding: 1.5rem; }
-            .user-info { display: none; } /* Hide name on mobile */
-        }
+        :root { --primary: #2d6a4f; --primary-dark: #1b4332; --light: #f8f9fa; }
+        body { font-family: 'Poppins', sans-serif; background: var(--light); color: #333; }
+        
+        /* Navbar */
+        .navbar { background: white; box-shadow: 0 2px 15px rgba(0,0,0,0.05); padding: 1rem 0; }
+        .navbar-brand { font-weight: 700; color: var(--primary-dark); font-size: 1.4rem; }
+        .nav-link { color: #555; font-weight: 500; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); }
+        
+        .cart-icon { position: relative; color: #333; font-size: 1.3rem; }
+        .cart-badge { position: absolute; top: -6px; right: -8px; background: #dc3545; color: white; font-size: 0.65rem; padding: 2px 5px; border-radius: 50%; font-weight: 600; }
+        
+        .profile-trigger { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; }
+        
+        /* Main Content */
+        .main-content { min-height: calc(100vh - 180px); padding-top: 2.5rem; padding-bottom: 4rem; }
+        .section-title { font-weight: 700; color: #222; margin-bottom: 1.5rem; }
+        
+        /* Footer */
+        .app-footer { background: white; border-top: 1px solid #eee; padding: 1.5rem 0; text-align: center; color: #666; font-size: 0.9rem; }
     </style>
     @stack('styles')
 </head>
 <body>
 
-    {{-- Overlay Mobile --}}
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    {{-- Sidebar --}}
-    <nav class="sidebar" id="sidebar">
-        <a href="{{ route('home') }}" class="sidebar-brand text-decoration-none">
-            <i class="bi bi-cup-hot-fill"></i>
-            <h4>Fakhri Kitchen</h4>
-        </a>
-
-        <ul class="sidebar-menu">
-    {{-- Beranda --}}
-    <li>
-        <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
-            <i class="bi bi-house-door"></i> <span>Beranda</span>
-        </a>
-    </li>
-
-    {{-- Dashboard --}}
-    <li>
-        <a href="{{ route('customer.dashboard') }}" class="{{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-        </a>
-    </li>
-
-    {{-- Katalog Paket --}}
-    <li>
-        <a href="{{ route('customer.catalog') }}" class="{{ request()->routeIs('customer.catalog') ? 'active' : '' }}">
-            <i class="bi bi-grid-3x3"></i> <span>Katalog Paket</span>
-        </a>
-    </li>
-
-    {{-- ✅ Pemesanan (Gabung Create + History) --}}
-    <li>
-        <a href="{{ route('customer.orders') }}" class="{{ request()->routeIs('customer.orders') || request()->routeIs('customer.order.*') ? 'active' : '' }}">
-            <i class="bi bi-receipt"></i> <span>Pemesanan</span>
-        </a>
-    </li>
-
-    {{-- Profil Saya --}}
-    <li>
-        <a href="{{ route('customer.profile') }}" class="{{ request()->routeIs('customer.profile') ? 'active' : '' }}">
-            <i class="bi bi-person-circle"></i> <span>Profil Saya</span>
-        </a>
-    </li>
-
-    {{-- Logout --}}
-    <li style="margin-top: auto;">
-        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-danger">
-            <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
-        </a>
-    </li>
-</ul>
-    </nav>
-
-    {{-- Main Content --}}
-    <div class="main-content">
-        {{-- Top Bar --}}
-        <header class="topbar">
-            <button class="toggle-sidebar" onclick="toggleSidebar()">
-                <i class="bi bi-list"></i>
+    {{-- NAVBAR (Sama dengan Landing Page) --}}
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ route('home') }}">
+                <i class="bi bi-cup-hot-fill me-2"></i>Fakhri Kitchen
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
-
-            <div class="user-profile">
-                <div class="text-end d-none d-md-block user-info">
-                    <span class="user-name">{{ Auth::guard('pelanggan')->user()->nama_pelanggan }}</span>
-                    <span class="user-role">Pelanggan</span>
-                </div>
-                <div class="user-avatar">
-                    {{ strtoupper(substr(Auth::guard('pelanggan')->user()->nama_pelanggan, 0, 1)) }}
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('customer.catalog') ? 'active' : '' }}" href="{{ route('customer.catalog') }}">Katalog</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('customer.orders') ? 'active' : '' }}" href="{{ route('customer.orders') }}">Pesanan Saya</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-4">
+                    {{-- Cart --}}
+                    <a href="{{ route('customer.cart.index') }}" class="cart-icon">
+                        <i class="bi bi-cart3"></i>
+                        @php $count = \App\Models\Cart::where('id_pelanggan', auth()->guard('pelanggan')->id())->sum('jumlah'); @endphp
+                        @if($count > 0) <span class="cart-badge">{{ $count }}</span> @endif
+                    </a>
+                    
+                    {{-- Profile Dropdown --}}
+                    <div class="dropdown">
+                        <div class="profile-trigger" data-bs-toggle="dropdown">
+                            <div class="avatar">{{ strtoupper(substr(auth()->guard('pelanggan')->user()->nama_pelanggan, 0, 1)) }}</div>
+                            <span class="d-none d-md-inline fw-medium">{{ auth()->guard('pelanggan')->user()->nama_pelanggan }}</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><h6 class="dropdown-header">Akun Saya</h6></li>
+                            <li><a class="dropdown-item" href="{{ route('customer.profile') }}"><i class="bi bi-person me-2"></i>Profil & Alamat</a></li>
+                            <li><a class="dropdown-item" href="{{ route('customer.orders') }}"><i class="bi bi-receipt me-2"></i>Riwayat Pesanan</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </header>
-
-        {{-- Page Content Injection --}}
-        <div class="page-content">
-            @yield('content')
         </div>
-    </div>
+    </nav>
 
-    {{-- Hidden Logout Form --}}
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-        @csrf
-    </form>
+    {{-- MAIN CONTENT --}}
+    <main class="main-content">
+        @yield('content')
+    </main>
 
-    {{-- Scripts --}}
+    {{-- FOOTER --}}
+    <footer class="app-footer">
+        <div class="container">
+            &copy; {{ date('Y') }} Fakhri Kitchen. Premium Catering Service.
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            } else {
-                // Logic for desktop collapse if needed, but fixed is better for dashboards
-            }
-        }
-    </script>
     @stack('scripts')
 </body>
 </html>

@@ -44,8 +44,9 @@
                 <div class="hero-image-wrapper">
                     {{-- IMAGE: hero-food.jpg --}}
                     <img src="{{ asset('images/landing/hero-food.jpg') }}" alt="Catering Fakhri Kitchen" class="hero-image">
+                    {{-- ✅ BADGE: Nempel di gambar --}}
                     <div class="hero-badge">
-                        <i class="bi bi-award"></i> Premium Quality Since 2024
+                        <i class="bi bi-award me-1"></i> Premium Quality Since 2024
                     </div>
                 </div>
             </div>
@@ -94,11 +95,11 @@
                 </div>
             </div>
             
-            {{-- Sustainability --}}
+            {{-- ✅ Sustainability - FIX: Pakai icon bi-tree --}}
             <div class="col-lg-3 col-md-6">
                 <div class="value-card text-center">
                     <div class="value-icon-wrapper mb-3">
-                        <i class="bi bi-leaf text-warning"></i>
+                        <i class="bi bi-tree text-warning"></i>
                     </div>
                     <h5 class="text-white mb-2">Sustainability</h5>
                     <p class="text-white-50 mb-0">Eco-friendly dining practices</p>
@@ -281,10 +282,12 @@
         <h2>Ready to Elevate Your Culinary Journey?</h2>
         <p>Hubungi kami sekarang dan dapatkan penawaran spesial untuk acara Anda!</p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="{{ route('register') }}" class="btn btn-cta-white btn-lg">
-                <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
+<a href="{{ route('customer.catalog') }}" class="btn btn-cta btn-lg">
+    <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
+</a>
+        <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
             </a>
-            <a href="https://wa.me/6281234567890" class="btn btn-outline-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem; font-weight: 600;">
+            <a href="https://wa.me/6285842517974" class="btn btn-outline-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem; font-weight: 600;">
                 <i class="bi bi-whatsapp me-2"></i>WhatsApp Kami
             </a>
         </div>

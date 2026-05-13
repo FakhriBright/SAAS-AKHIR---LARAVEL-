@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Edit Pesanan')
 
@@ -28,12 +28,10 @@
 
                         {{-- Informasi Pelanggan & Pembayaran --}}
                         <div class="row g-4 mb-4">
-                            {{-- Pilih Pelanggan --}}
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Pelanggan <span class="text-danger">*</span></label>
                                 <select name="id_pelanggan" class="form-select @error('id_pelanggan') is-invalid @enderror" required>
                                     <option value="">-- Pilih Pelanggan --</option>
-                                    {{-- ✅ PAKAI $pelanggans (PLURAL) --}}
                                     @foreach($pelanggans as $pelanggan)
                                     <option value="{{ $pelanggan->id }}" 
                                         {{ (old('id_pelanggan', $pemesanan->id_pelanggan) == $pelanggan->id) ? 'selected' : '' }}>
@@ -46,7 +44,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Pilih Metode Pembayaran --}}
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Metode Pembayaran <span class="text-danger">*</span></label>
                                 <select name="id_jenis_bayar" class="form-select @error('id_jenis_bayar') is-invalid @enderror" required>
@@ -68,7 +65,7 @@
                         <div class="mb-4">
                             <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
                             <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror" 
-                                   value="{{ old('tgl_pesan', $pemesanan->tgl_pesan->format('Y-m-d')) }}" required>
+                                   value="{{ old('tgl_pesan', $pemesanan->tgl_pesan) }}" required>
                             @error('tgl_pesan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -83,19 +80,20 @@
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label small">Pilih Paket</label>
-                                            <select name="paket_id[]" class="form-select" required>
+                                            <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 @foreach($pakets as $paket)
-                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}"
+                                                {{-- ✅ FIX: PAKAI harga_paket --}}
+                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga_paket }}"
                                                     {{ $detail->paket_id == $paket->id ? 'selected' : '' }}>
-                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}
+                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}
                                                 </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">Jumlah</label>
-                                            <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" 
+                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah" 
                                                    min="1" value="{{ old('jumlah.' . $index, $detail->jumlah) }}" required>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
@@ -110,18 +108,19 @@
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label small">Pilih Paket</label>
-                                            <select name="paket_id[]" class="form-select" required>
+                                            <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 @foreach($pakets as $paket)
-                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">
-                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}
+                                                {{-- ✅ FIX: PAKAI harga_paket --}}
+                                                <option value="{{ $paket->id }}" data-harga="{{ $paket->harga_paket }}">
+                                                    {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}
                                                 </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">Jumlah</label>
-                                            <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" min="1" value="1" required>
+                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah" min="1" value="1" required>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
                                             <button type="button" class="btn btn-sm btn-danger w-100" onclick="removePaket(this)" style="display:none;">
@@ -145,6 +144,7 @@
                                 <option value="Sedang Diproses" {{ old('status_pesan', $pemesanan->status_pesan) == 'Sedang Diproses' ? 'selected' : '' }}>Sedang Diproses</option>
                                 <option value="Menunggu Kurir" {{ old('status_pesan', $pemesanan->status_pesan) == 'Menunggu Kurir' ? 'selected' : '' }}>Menunggu Kurir</option>
                                 <option value="Selesai" {{ old('status_pesan', $pemesanan->status_pesan) == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                                <option value="Dibatalkan" {{ old('status_pesan', $pemesanan->status_pesan) == 'Dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                             </select>
                             @error('status_pesan')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -184,26 +184,37 @@
 
 @push('scripts')
 <script>
+    // Data paket
+    const paketData = @json($pakets);
+
+    // Fungsi populate dropdown
+    function populatePaketDropdown(selectElement) {
+        selectElement.innerHTML = '<option value="">-- Pilih Paket --</option>';
+        paketData.forEach(paket => {
+            const option = document.createElement('option');
+            option.value = paket.id;
+            option.dataset.harga = paket.harga_paket;
+            option.textContent = `${paket.nama_paket} - Rp ${new Intl.NumberFormat('id-ID').format(paket.harga_paket)}`;
+            selectElement.appendChild(option);
+        });
+    }
+
     // Tambah paket dinamis
     function addPaket() {
         const container = document.getElementById('paket-container');
-        
         const newItem = document.createElement('div');
         newItem.className = 'paket-item border rounded p-3 mb-3';
         newItem.innerHTML = `
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label small">Pilih Paket</label>
-                    <select name="paket_id[]" class="form-select" required>
+                    <select name="paket_id[]" class="form-select paket-select" required>
                         <option value="">-- Pilih Paket --</option>
-                        @foreach($pakets as $paket)
-                        <option value="{{ $paket->id }}" data-harga="{{ $paket->harga }}">{{ $paket->nama_paket }} - Rp {{ number_format($paket->harga, 0, ',', '.') }}</option>
-                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small">Jumlah</label>
-                    <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" min="1" value="1" required>
+                    <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah" min="1" value="1" required>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-sm btn-danger w-100" onclick="removePaket(this)">
@@ -213,6 +224,11 @@
             </div>
         `;
         container.appendChild(newItem);
+        
+        // Populate dropdown yang baru
+        const newSelect = newItem.querySelector('.paket-select');
+        populatePaketDropdown(newSelect);
+        
         updateDeleteButtons();
     }
 
@@ -254,17 +270,15 @@
         }
     });
 
-    // Loading state saat submit
-    document.getElementById('orderForm')?.addEventListener('submit', function() {
-        const btn = document.getElementById('btn-submit');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
-        }
-    });
-
     // Init
     document.addEventListener('DOMContentLoaded', function() {
+        // Populate semua dropdown yang ada
+        document.querySelectorAll('.paket-select').forEach(select => {
+            if (!select.options.length || select.options.length === 1) {
+                populatePaketDropdown(select);
+            }
+        });
+        
         calculateTotal();
         updateDeleteButtons();
     });

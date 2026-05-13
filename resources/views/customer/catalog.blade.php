@@ -1,148 +1,144 @@
-@extends('layouts.customer')
+@extends('layouts.app')
 
-@section('title', 'Katalog Paket - Fakhri Kitchen')
+@section('title', 'Katalog Paket Catering')
 
 @section('content')
-<div class="container-fluid px-0">    {{-- Header Section --}}
-    <div class="text-center mb-5">
-        <h2 class="fw-bold mb-2" style="color: var(--primary-dark); font-size: 2.5rem;">
-            Paket Catering Kami
-        </h2>
-        <p class="text-muted lead">Pilih paket catering terbaik untuk acara Anda</p>
-        
-        {{-- Filter Buttons --}}
-        <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
-            <button class="btn btn-fk-primary rounded-pill px-4" onclick="filterPaket('all')">
-                <i class="bi bi-grid me-2"></i>Semua Paket
-            </button>
-            <button class="btn btn-fk-outline rounded-pill px-4" onclick="filterPaket('Prasmanan')">
-                Prasmanan
-            </button>
-            <button class="btn btn-fk-outline rounded-pill px-4" onclick="filterPaket('Meal Box')">
-                Meal Box
-            </button>
-            <button class="btn btn-fk-outline rounded-pill px-4" onclick="filterPaket('Snack Box')">
-                Snack Box
-            </button>
-            <button class="btn btn-fk-outline rounded-pill px-4" onclick="filterPaket('Tumpeng')">
-                Tumpeng
-            </button>
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Katalog Paket Catering</h2>
+            <p class="text-muted mb-0">Pilih paket catering terbaik untuk acara Anda</p>
         </div>
+        <a href="{{ route('customer.cart.index') }}" class="btn btn-fk-outline position-relative">
+            <i class="bi bi-cart3 me-2"></i>Keranjang
+            @php $count = \App\Models\Cart::where('id_pelanggan', auth()->guard('pelanggan')->id())->sum('jumlah'); @endphp
+            @if($count > 0) 
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">
+                    {{ $count > 99 ? '99+' : $count }}
+                </span> 
+            @endif
+        </a>
     </div>
 
-    {{-- Packages Grid --}}
-    <div class="row g-4" id="paket-grid">
-        @forelse($pakets as $paket)
-        <div class="col-lg-4 col-md-6 paket-item" data-jenis="{{ $paket->jenis }}">
-            <div class="card fk-card h-100 border-0 shadow-sm overflow-hidden">
-                {{-- Image Container --}}
-                <div class="position-relative overflow-hidden" style="height: 250px;">
-                    <img src="{{ $paket->foto1 ? asset('storage/' . $paket->foto1) : 'https://via.placeholder.com/400x250?text=' . urlencode($paket->nama_paket) }}" 
-                         class="card-img-top h-100 w-100" 
-                         alt="{{ $paket->nama_paket }}"
-                         style="object-fit: cover; transition: transform 0.5s;">
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">
-                            <i class="bi bi-tag me-1"></i>{{ $paket->jenis }}
-                        </span>
-                    </div>
-                    {{-- Overlay on Hover --}}
-                    <div class="position-absolute w-100 h-100 top-0 start-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 transition-opacity" style="transition: all 0.3s;">
-                        <button class="btn btn-light rounded-pill px-4" onclick="window.location.href='{{ route('customer.order.create') }}?paket={{ $paket->id }}'">
-                            <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
-                        </button>
-                    </div>
-                </div>
-                
-                {{-- Card Body --}}
-                <div class="card-body p-4 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="fw-bold mb-0" style="color: var(--primary-dark); font-size: 1.25rem;">
-                            {{ $paket->nama_paket }}
-                        </h5>
-                    </div>
-                    
-                    <p class="text-muted mb-3 flex-grow-1" style="font-size: 0.9rem; line-height: 1.6;">
-                        {{ Str::limit($paket->deskripsi, 100) }}
-                    </p>
-                    
-                    {{-- Package Details --}}
-                    <div class="d-flex gap-3 mb-3 small">
-                        <span class="text-muted">
-                            <i class="bi bi-people me-1 text-primary"></i>
-                            {{ $paket->jumlah_pax }} Pax
-                        </span>
-                        @if($paket->kategori)
-                        <span class="text-muted">
-                            <i class="bi bi-tag me-1 text-primary"></i>
-                            {{ $paket->kategori }}
-                        </span>
-                        @endif
-                    </div>
-                    
-                    {{-- Price & Action --}}
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                        <div>
-                            <small class="text-muted d-block" style="font-size: 0.75rem;">Mulai dari</small>
-                            <h4 class="fw-bold text-success mb-0" style="font-size: 1.5rem;">
-                                Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}
-                            </h4>
-                        </div>
-                        <a href="{{ route('customer.order.create') }}?paket={{ $paket->id }}" class="btn btn-fk-primary rounded-pill px-4">
-                            <i class="bi bi-cart-plus me-1"></i> Pesan
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="col-12 text-center py-5">
-            <div class="bg-light rounded-circle d-inline-flex p-5 mb-3">
-                <i class="bi bi-box-seam fs-1 text-muted"></i>
-            </div>
-            <h5 class="text-muted mb-2">Belum ada paket tersedia</h5>
-            <p class="text-muted">Silakan hubungi admin untuk informasi lebih lanjut</p>
-        </div>
-        @endforelse
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+    @endif
+
+    @if($pakets->count() > 0)
+    <div class="row g-4">
+        @foreach($pakets as $paket)
+        <div class="col-md-6 col-lg-4">
+            <div class="card fk-card h-100">
+                <div class="position-relative" style="height: 220px; overflow: hidden; background: #f8f9fa;">
+                    {{-- Gambar dari Unsplash API berdasarkan kategori --}}
+                    @php
+                        $imageKeywords = [
+                            'prasmanan' => 'buffet+catering+indonesian',
+                            'meal box' => 'meal+box+lunch',
+                            'snack box' => 'snack+box+indonesian',
+                            'tumpeng' => 'tumpeng+indonesian+food',
+                            'default' => 'catering+food+buffet'
+                        ];
+                        $kategori = strtolower($paket->kategori);
+                        $keyword = $imageKeywords[$kategori] ?? $imageKeywords['default'];
+                        $imageUrl = "https://source.unsplash.com/600x400/?{$keyword}";
+                    @endphp
+                    
+                    @if($paket->foto1)
+                        <img src="{{ asset('storage/' . $paket->foto1) }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $paket->nama_paket }}">
+                    @else
+                      {{-- Ganti bagian gambar dengan ini --}}
+<img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=400&fit=crop&{{ $paket->id }}" 
+     class="w-100 h-100" 
+     style="object-fit: cover;" 
+     alt="{{ $paket->nama_paket }}">
+                             onerror="this.src='https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop'">
+                    @endif
+                    
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-primary">{{ $paket->jenis }}</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-1">{{ $paket->nama_paket }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-tag me-1"></i>{{ $paket->kategori }}
+                    </p>
+                    <p class="card-text text-muted small mb-3 flex-grow-1">
+                        {{ Str::limit($paket->deskripsi, 80) }}
+                    </p>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-people text-primary me-2"></i>
+                        <span class="fw-medium small">{{ $paket->jumlah_pax }} Pax</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Harga per paket</small>
+                        <h4 class="text-success fw-bold mb-0">Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}</h4>
+                    </div>
+                    <form action="{{ route('customer.cart.add', $paket->id) }}" method="POST">
+                        @csrf
+                        <div class="input-group input-group-sm">
+                            <input type="number" name="jumlah" class="form-control" value="1" min="1" style="max-width: 70px;">
+                            <button type="submit" class="btn btn-fk-primary">
+                                <i class="bi bi-cart-plus me-1"></i>Tambah
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    
+    <div class="mt-4">
+        {{ $pakets->links('pagination::bootstrap-5') }}
+    </div>
+    @else
+    <div class="text-center py-5">
+        <i class="bi bi-box-seam fs-1 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">Belum ada paket tersedia</h5>
+    </div>
+    @endif
 </div>
 @endsection
 
 @push('styles')
 <style>
-    .hover-opacity-100:hover { opacity: 1 !important; }
-    .transition-opacity { transition: opacity 0.3s ease; }
-    .card-img-top:hover { transform: scale(1.1); }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-    function filterPaket(jenis) {
-        const items = document.querySelectorAll('.paket-item');
-        const buttons = document.querySelectorAll('.btn-outline-cta, .btn-fk-primary');
-        
-        // Update active button
-        buttons.forEach(btn => {
-            if (btn.textContent.toLowerCase().includes(jenis.toLowerCase()) || (jenis === 'all' && btn.textContent.includes('Semua'))) {
-                btn.classList.remove('btn-fk-outline');
-                btn.classList.add('btn-fk-primary');
-            } else {
-                btn.classList.remove('btn-fk-primary');
-                btn.classList.add('btn-fk-outline');
-            }
-        });
-        
-        // Filter items
-        items.forEach(item => {
-            if (jenis === 'all' || item.dataset.jenis === jenis) {
-                item.style.display = 'block';
-                item.classList.add('animate__animated', 'animate__fadeIn');
-            } else {
-                item.style.display = 'none';
-                item.classList.remove('animate__animated', 'animate__fadeIn');
-            }
-        });
+    .fk-card { 
+        border: none; 
+        border-radius: 16px; 
+        box-shadow: 0 5px 20px rgba(112, 144, 176, 0.08); 
+        transition: all 0.3s;
+        overflow: hidden;
     }
-</script>
+    .fk-card:hover { 
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    .btn-fk-primary { 
+        background: #2d6a4f; 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-fk-primary:hover { 
+        background: #1b4332; 
+        color: white;
+        transform: translateY(-2px);
+    }
+    .btn-fk-outline { 
+        border: 1px solid #2d6a4f; 
+        color: #2d6a4f; 
+        background: transparent; 
+        border-radius: 8px; 
+        font-weight: 500;
+    }
+    .btn-fk-outline:hover { 
+        background: #2d6a4f; 
+        color: white;
+    }
+</style>
 @endpush
