@@ -11,7 +11,9 @@
         </div>
         <a href="{{ route('customer.cart.index') }}" class="btn btn-fk-outline position-relative">
             <i class="bi bi-cart3 me-2"></i>Keranjang
-            @php $count = \App\Models\Cart::where('id_pelanggan', auth()->guard('pelanggan')->id())->sum('jumlah'); @endphp
+            @php 
+                $count = \App\Models\Cart::where('id_pelanggan', auth()->guard('pelanggan')->id())->sum('jumlah'); 
+            @endphp
             @if($count > 0) 
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">
                     {{ $count > 99 ? '99+' : $count }}
@@ -33,28 +35,29 @@
         <div class="col-md-6 col-lg-4">
             <div class="card fk-card h-100">
                 <div class="position-relative" style="height: 220px; overflow: hidden; background: #f8f9fa;">
-                    {{-- Gambar dari Unsplash API berdasarkan kategori --}}
-                    @php
-                        $imageKeywords = [
-                            'prasmanan' => 'buffet+catering+indonesian',
-                            'meal box' => 'meal+box+lunch',
-                            'snack box' => 'snack+box+indonesian',
-                            'tumpeng' => 'tumpeng+indonesian+food',
-                            'default' => 'catering+food+buffet'
-                        ];
-                        $kategori = strtolower($paket->kategori);
-                        $keyword = $imageKeywords[$kategori] ?? $imageKeywords['default'];
-                        $imageUrl = "https://source.unsplash.com/600x400/?{$keyword}";
-                    @endphp
-                    
-                    @if($paket->foto1)
-                        <img src="{{ asset('storage/' . $paket->foto1) }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $paket->nama_paket }}">
+                    {{-- Gambar dari database atau Unsplash --}}
+                    @if($paket->foto1 && file_exists(public_path('storage/' . $paket->foto1)))
+                        <img src="{{ asset('storage/' . $paket->foto1) }}" 
+                             class="w-100 h-100" 
+                             style="object-fit: cover;" 
+                             alt="{{ $paket->nama_paket }}">
                     @else
-                      {{-- Ganti bagian gambar dengan ini --}}
-<img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=400&fit=crop&{{ $paket->id }}" 
-     class="w-100 h-100" 
-     style="object-fit: cover;" 
-     alt="{{ $paket->nama_paket }}">
+                        {{-- Fallback ke Unsplash berdasarkan kategori --}}
+                        @php
+                            $kategoriLower = strtolower($paket->kategori);
+                            $imageMap = [
+                                'snack box' => 'photo-1567620905732-2d1ec7ab744a',
+                                'meal box' => 'photo-1512621776951-a57141f2eefd',
+                                'prasmanan' => 'photo-1555939594-58d7cb561ad1',
+                                'tumpeng' => 'photo-1511690743698-d9d85f2fbf54',
+                                'default' => 'photo-1414235077428-338989a2e8c0'
+                            ];
+                            $imageId = $imageMap[$kategoriLower] ?? $imageMap['default'];
+                        @endphp
+                        <img src="https://images.unsplash.com/{{ $imageId }}?w=600&h=400&fit=crop" 
+                             class="w-100 h-100" 
+                             style="object-fit: cover;" 
+                             alt="{{ $paket->nama_paket }}"
                              onerror="this.src='https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop'">
                     @endif
                     
