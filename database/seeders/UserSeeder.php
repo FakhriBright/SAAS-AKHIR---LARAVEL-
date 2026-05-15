@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin Catering',
                 'password' => Hash::make('12345678'),
-                'level' => 'admin',
+                'role' => 'admin',  // ✅ GANTI 'level' JADI 'role'
                 'email_verified_at' => now(),
             ]
         );
@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Fakhri Owner',
                 'password' => Hash::make('12345678'),
-                'level' => 'owner',
+                'role' => 'owner',  // ✅ GANTI 'level' JADI 'role'
                 'email_verified_at' => now(),
             ]
         );
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Royhan Kurir',
                 'password' => Hash::make('12345678'),
-                'level' => 'kurir',
+                'role' => 'kurir',  // ✅ GANTI 'level' JADI 'role'
                 'email_verified_at' => now(),
             ]
         );

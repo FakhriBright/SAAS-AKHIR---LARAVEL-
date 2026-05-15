@@ -8,18 +8,28 @@
         <h4 class="fw-bold mb-1">Pengiriman</h4>
         <p class="text-muted mb-0">Monitoring status pengiriman kurir.</p>
     </div>
+    {{-- HANYA ADMIN YANG BISA TAMBAH PENGIRIMAN --}}
+    @if(auth()->user()->role === 'admin')
     <a href="{{ route('pengirimans.create') }}" class="btn btn-primary rounded-pill px-4">
         <i class="bi bi-plus-circle me-2"></i>Tambah Pengiriman
     </a>
+    @endif
 </div>
+
+@if(auth()->user()->role === 'kurir')
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Tampilkan pesanan dengan status <strong>"Sedang Dikirim"</strong> yang siap diambil
+</div>
+@endif
 
 <div class="card-modern p-4">
     <div class="table-responsive">
         <table class="table table-modern mb-0">
             <thead>
                 <tr>
-                    <th class="ps-4">Kurir</th>
-                    <th>No. Resi</th>
+                    <th class="ps-4">No. Resi</th>
+                    <th>Pelanggan</th>
                     <th>Tgl Kirim</th>
                     <th>Tgl Tiba</th>
                     <th>Status</th>
@@ -30,24 +40,14 @@
                 @forelse($pengirimans as $pengiriman)
                 <tr>
                     <td class="ps-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-light rounded-circle p-2">
-                                <i class="bi bi-person text-dark"></i>
-                            </div>
-                            {{-- ✅ FIX: Pakai relasi 'user' --}}
-                            <span class="fw-bold">{{ $pengiriman->user->name ?? $pengiriman->user->nama_pelanggan ?? '-' }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <a href="{{ route('pemesanans.show', $pengiriman->pemesanan->id) }}" class="text-primary fw-bold text-decoration-none">
+                        <a href="{{ route('pengirimans.show', $pengiriman->id) }}" class="text-primary fw-bold text-decoration-none">
                             {{ $pengiriman->pemesanan->no_resi ?? '-' }}
                         </a>
                     </td>
-                    {{-- ✅ FIX: Pakai field 'tgl_kirim' dan 'tgl_tiba' --}}
+                    <td>{{ $pengiriman->pemesanan->pelanggan->nama_pelanggan ?? '-' }}</td>
                     <td>{{ $pengiriman->tgl_kirim ? $pengiriman->tgl_kirim->format('d/m/Y') : '-' }}</td>
                     <td>{{ $pengiriman->tgl_tiba ? $pengiriman->tgl_tiba->format('d/m/Y') : '-' }}</td>
                     <td>
-                        {{-- ✅ FIX: Pakai field 'status_kirim' --}}
                         @php
                             $statusClass = match($pengiriman->status_kirim) {
                                 'Menunggu Kurir' => 'secondary',
@@ -61,10 +61,25 @@
                         </span>
                     </td>
                     <td class="pe-4 text-end">
-                        <div class="btn-group">
-                            <a href="{{ route('pengirimans.edit', $pengiriman->id) }}" class="btn btn-sm btn-light text-warning"><i class="bi bi-pencil-fill"></i></a>
-                            <a href="{{ route('pengirimans.show', $pengiriman->id) }}" class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></a>
-                        </div>
+                        @if(auth()->user()->role === 'kurir')
+                            {{-- KURIR: Cuma bisa lihat detail & konfirmasi kalau status "Sedang Dikirim" --}}
+                            @if($pengiriman->status_kirim === 'Sedang Dikirim')
+                                <a href="{{ route('kurir.pengirimans.edit', $pengiriman->id) }}" class="btn btn-sm btn-success" title="Ambil & Konfirmasi">
+                                    <i class="bi bi-check-circle"></i>
+                                </a>
+                            @endif
+                            <a href="{{ route('kurir.pengirimans.show', $pengiriman->id) }}" class="btn btn-sm btn-light" title="Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        @else
+                            {{-- ADMIN: Full akses --}}
+                            <a href="{{ route('pengirimans.edit', $pengiriman->id) }}" class="btn btn-sm btn-light text-warning" title="Edit">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a href="{{ route('pengirimans.show', $pengiriman->id) }}" class="btn btn-sm btn-light text-primary" title="Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        @endif
                     </td>
                 </tr>
                 @empty

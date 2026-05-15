@@ -2,7 +2,6 @@
 
 <?php $__env->startSection('content'); ?>
 <style>
-    /* --- LAYOUT FIX: Grafik Rapih & Penuh --- */
     .chart-card {
         background: white;
         border-radius: 16px;
@@ -20,10 +19,9 @@
     .chart-wrapper {
         flex: 1;
         position: relative;
-        min-height: 350px; /* Tinggi minimal biar gak gepeng */
+        min-height: 350px;
     }
     
-    /* --- TOP SELLING LIST --- */
     .top-selling-list {
         display: flex;
         flex-direction: column;
@@ -66,7 +64,6 @@
     .item-sold { font-size: 0.8rem; color: #888; }
     .item-qty { font-weight: 700; color: #2d6a4f; font-size: 0.95rem; }
     
-    /* --- DOWNLOAD BUTTON STYLES --- */
     .btn-download {
         background: #dc3545;
         color: white;
@@ -168,7 +165,7 @@
             
             <div class="top-selling-list">
                 <?php $__empty_1 = true; $__currentLoopData = $topPackages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <?php if($index < 3): ?> 
+                <?php if($index < 3): ?>
                 <div class="top-selling-item">
                     <div class="d-flex align-items-center">
                         <span class="rank-badge <?php echo e($index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : 'rank-3')); ?>">
@@ -212,6 +209,7 @@
                     <button type="button" class="btn-download" data-bs-toggle="modal" data-bs-target="#downloadModal">
                         <i class="bi bi-file-earmark-pdf"></i> Download Laporan
                     </button>
+                    
                     <a href="<?php echo e(route('pemesanans.index')); ?>" class="btn btn-sm btn-primary rounded-pill px-3">
                         Lihat Semua
                     </a>
@@ -233,7 +231,7 @@
                         <?php $__empty_1 = true; $__currentLoopData = $recentOrders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <td class="ps-4 fw-bold text-primary small"><?php echo e($order->no_resi); ?></td>
-                            <td class="small"><?php echo e($order->tgl_pesan->format('d/m/Y')); ?></td>
+                            <td class="small"><?php echo e($order->tgl_pesan?->format('d/m/Y')); ?></td>
                             <td class="small"><?php echo e($order->pelanggan->nama_pelanggan ?? '-'); ?></td>
                             <td class="fw-bold text-success small">Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></td>
                             <td>
@@ -253,7 +251,10 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="<?php echo e(route('pemesanans.show', $order->id)); ?>" class="btn btn-sm btn-light text-primary rounded-3"><i class="bi bi-eye"></i></a>
+                                
+                                <a href="<?php echo e(route('pemesanans.show', $order->id)); ?>" class="btn btn-sm btn-light text-primary rounded-3">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                             </td>
                         </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -316,8 +317,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        
-        // 1. LINE CHART (FIXED SYNTAX)
+        // LINE CHART
         const ordersCanvas = document.getElementById('ordersChart');
         if (ordersCanvas) {
             const ctx = ordersCanvas.getContext('2d');
@@ -325,14 +325,13 @@
             gradient.addColorStop(0, 'rgba(45, 106, 79, 0.5)');
             gradient.addColorStop(1, 'rgba(45, 106, 79, 0.0)');
             
-            // PERBAIKAN STRUKTUR: data: { ... }
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: <?php echo json_encode($chartLabels ?? []); ?>,
                     datasets: [{
                         label: 'Jumlah Pesanan',
-                        data: <?php echo json_encode($chartData ?? []); ?>, // PERBAIKAN: data: [...]
+                        data: <?php echo json_encode($chartData ?? []); ?>,
                         borderColor: '#2d6a4f',
                         backgroundColor: gradient,
                         borderWidth: 3,
@@ -347,10 +346,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // FIX: Biar menyesuaikan container
-                    layout: {
-                        padding: { top: 10, right: 10, bottom: 0, left: 0 }
-                    },
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 10, right: 10, bottom: 0, left: 0 } },
                     plugins: { 
                         legend: { display: false },
                         tooltip: {
@@ -380,12 +377,10 @@
             });
         }
 
-        // 2. DOUGHNUT CHART (FIXED SYNTAX)
+        // DOUGHNUT CHART
         const statusCanvas = document.getElementById('statusChart');
         if (statusCanvas) {
             const ctx = statusCanvas.getContext('2d');
-            
-            // PERBAIKAN STRUKTUR: data: { ... }
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -398,7 +393,7 @@
                             <?php echo e($selesai ?? 0); ?>,
                             <?php echo e($dibatalkan ?? 0); ?>
 
-                        ], // PERBAIKAN: data: [...]
+                        ],
                         backgroundColor: ['#ffc107', '#0dcaf0', '#6c757d', '#198754', '#dc3545'],
                         borderWidth: 0
                     }]

@@ -6,17 +6,11 @@
 <style>
     .checkout-container { padding: 40px 0; max-width: 1200px; margin: 0 auto; }
     
-    .page-header {
-        margin-bottom: 32px;
-    }
+    .page-header { margin-bottom: 32px; }
     .page-header h2 { font-weight: 700; margin-bottom: 4px; }
     .page-header p { color: #666; margin: 0; }
     
-    .checkout-grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 24px;
-    }
+    .checkout-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
     
     .card {
         background: white;
@@ -37,12 +31,7 @@
     
     /* Form Styles */
     .form-group { margin-bottom: 20px; }
-    .form-label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #333;
-    }
+    .form-label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
     .form-control {
         width: 100%;
         padding: 12px 16px;
@@ -73,11 +62,7 @@
         overflow: hidden;
         flex-shrink: 0;
     }
-    .item-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+    .item-image img { width: 100%; height: 100%; object-fit: cover; }
     .item-details { flex: 1; }
     .item-name { font-weight: 600; margin-bottom: 4px; }
     .item-desc { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
@@ -139,6 +124,66 @@
     .payment-info { flex: 1; }
     .payment-name { font-weight: 600; margin-bottom: 2px; }
     .payment-desc { font-size: 0.85rem; color: #666; }
+    
+    /* ✅ PAYMENT DETAILS BOX */
+    .payment-details-box {
+        margin-top: 16px;
+        padding: 16px;
+        background: #f0f7f4;
+        border-radius: 12px;
+        border-left: 4px solid #2d6a4f;
+        display: none;
+    }
+    .payment-details-box.show { display: block; animation: slideDown 0.3s ease; }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .payment-details-title {
+        font-weight: 700;
+        color: #2d6a4f;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .payment-detail-item {
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    .payment-detail-item:last-child { margin-bottom: 0; }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+    }
+    .detail-label { color: #666; font-size: 0.9rem; }
+    .detail-value {
+        font-weight: 600;
+        color: #333;
+    }
+    .detail-value.rekening {
+        background: #2d6a4f;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 1.05rem;
+    }
+    .cod-badge {
+        background: linear-gradient(135deg, #2d6a4f, #1b4332);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
     
     /* Submit Button */
     .btn-checkout-submit {
@@ -234,7 +279,8 @@
                     
                     <div class="payment-methods">
                         <?php $__currentLoopData = $jenisPembayarans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <label class="payment-method <?php echo e($loop->first ? 'active' : ''); ?>">
+                        <label class="payment-method <?php echo e($loop->first ? 'active' : ''); ?>" 
+                               data-method-id="<?php echo e($jp->id); ?>">
                             <input type="radio" name="id_jenis_bayar" value="<?php echo e($jp->id); ?>" 
                                    <?php echo e($loop->first ? 'checked' : ''); ?> required>
                             <div class="payment-icon">
@@ -252,6 +298,15 @@
                             </div>
                         </label>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+
+                    
+                    <div id="payment-details-box" class="payment-details-box">
+                        <div class="payment-details-title">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Informasi Pembayaran</span>
+                        </div>
+                        <div id="payment-details-content"></div>
                     </div>
                 </div>
             </div>
@@ -316,13 +371,115 @@
 </div>
 
 <script>
-    // Payment method selection
-    document.querySelectorAll('.payment-method').forEach(method => {
+document.addEventListener('DOMContentLoaded', function() {
+    // ✅ FIX: Ambil data payment details dengan benar
+    const paymentDetailsData = <?php echo json_encode($paymentDetails ?? [], 15, 512) ?>;
+    
+    console.log('Payment Details Data:', paymentDetailsData); // Debug log
+    
+    const paymentMethods = document.querySelectorAll('.payment-method');
+    const paymentDetailsBox = document.getElementById('payment-details-box');
+    const paymentDetailsContent = document.getElementById('payment-details-content');
+    
+    function showPaymentDetails(methodId) {
+        // ✅ FIX: Akses data dengan benar (key adalah string, bukan number)
+        const details = paymentDetailsData[String(methodId)] || paymentDetailsData[methodId] || [];
+        
+        console.log('Method ID:', methodId, 'Details:', details); // Debug log
+        
+        if (!details || details.length === 0) {
+            paymentDetailsBox.classList.remove('show');
+            return;
+        }
+        
+        let html = '';
+        
+        // Pastikan details adalah array
+        const detailsArray = Array.isArray(details) ? details : [details];
+        
+        detailsArray.forEach(function(detail) {
+            // Cek apakah COD / Bayar di Tempat
+            const nomorRek = detail.nomor_rekening || detail.nomor_rek || '';
+            const namaPemilik = detail.nama_pemilik || detail.atas_nama || '';
+            const bank = detail.bank || '';
+            
+            const isCOD = nomorRek && 
+                (nomorRek.toLowerCase().includes('bayar') || 
+                 nomorRek.toLowerCase().includes('tempat') ||
+                 (namaPemilik && namaPemilik.toLowerCase().includes('tempat')));
+            
+            if (isCOD) {
+                html += `
+                    <div class="payment-detail-item">
+                        <div style="text-align: center;">
+                            <div class="cod-badge">
+                                <i class="bi bi-cash-coin"></i>
+                                ${nomorRek}
+                            </div>
+                            <p style="margin: 12px 0 0; color: #666; font-size: 0.9rem;">
+                                ${namaPemilik || 'Silakan siapkan uang pas saat kurir tiba'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="payment-detail-item">
+                        <div class="detail-row">
+                            <span class="detail-label">👤 Atas Nama</span>
+                            <span class="detail-value">${namaPemilik || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">🔢 No. Rekening</span>
+                            <span class="detail-value rekening">${nomorRek}</span>
+                        </div>
+                        ${bank ? `
+                        <div class="detail-row">
+                            <span class="detail-label">🏦 Bank</span>
+                            <span class="detail-value">${bank}</span>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+        });
+        
+        // Tambah note penting
+        html += `
+            <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <small style="color: #856404;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Transfer sesuai total pesanan: <strong>Rp <?php echo e(number_format($total, 0, ',', '.')); ?></strong>
+                </small>
+            </div>
+        `;
+        
+        paymentDetailsContent.innerHTML = html;
+        paymentDetailsBox.classList.add('show');
+    }
+    
+    // Event listener untuk radio buttons
+    paymentMethods.forEach(method => {
         method.addEventListener('click', function() {
-            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+            // Update active state
+            paymentMethods.forEach(m => m.classList.remove('active'));
             this.classList.add('active');
+            
+            // Get method ID dan tampilkan detail
+            const radioInput = this.querySelector('input[type="radio"]');
+            const methodId = radioInput.value;
+            showPaymentDetails(methodId);
         });
     });
+    
+    // Trigger on load untuk method yang sudah selected
+    const selectedMethod = document.querySelector('.payment-method input[type="radio"]:checked');
+    if (selectedMethod) {
+        const methodElement = selectedMethod.closest('.payment-method');
+        const methodId = selectedMethod.value;
+        // Delay sedikit biar DOM ready
+        setTimeout(() => showPaymentDetails(methodId), 100);
+    }
+});
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\SAAS-AKHIR\resources\views/customer/checkout.blade.php ENDPATH**/ ?>

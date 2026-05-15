@@ -18,7 +18,6 @@
         </div>
         <?php endif; ?>
         
-        
         <?php if(session('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show">
             <?php echo e(session('error')); ?>
@@ -26,16 +25,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <?php endif; ?>
-        
-        
-        <?php if(session('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show">
-            <?php echo e(session('success')); ?>
-
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php endif; ?>
-        
         
         <form action="<?php echo e(route('pengirimans.store')); ?>" method="POST" enctype="multipart/form-data">
             <?php echo csrf_field(); ?>
@@ -52,29 +41,6 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
                 <?php $__errorArgs = ['pemesanan_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label fw-bold">Pilih Kurir <span class="text-danger">*</span></label>
-                <select name="id_user" class="form-select" required>
-                    <option value="">-- Pilih Kurir --</option>
-                    <?php $__currentLoopData = $kurirs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kurir): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <option value="<?php echo e($kurir->id); ?>" <?php echo e(old('id_user') == $kurir->id ? 'selected' : ''); ?>>
-                        <?php echo e($kurir->name ?? $kurir->nama_kurir ?? $kurir->nama_pelanggan ?? 'Kurir'); ?>
-
-                    </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-                <?php $__errorArgs = ['id_user'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -104,25 +70,14 @@ unset($__errorArgs, $__bag); ?>
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Tanggal Tiba (Opsional)</label>
                     <input type="date" name="tgl_tiba" class="form-control" value="<?php echo e(old('tgl_tiba')); ?>">
-                    <?php $__errorArgs = ['tgl_tiba'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
             
             <div class="mb-3">
-                <label class="form-label fw-bold">Status Pengiriman</label>
-                <select name="status_kirim" class="form-select">
+                <label class="form-label fw-bold">Status Pengiriman <span class="text-danger">*</span></label>
+                <select name="status_kirim" class="form-select" required>
                     <option value="Menunggu Kurir" <?php echo e(old('status_kirim') == 'Menunggu Kurir' ? 'selected' : ''); ?>>Menunggu Kurir</option>
                     <option value="Sedang Dikirim" <?php echo e(old('status_kirim') == 'Sedang Dikirim' ? 'selected' : ''); ?>>Sedang Dikirim</option>
-                    <option value="Tiba Ditujuan" <?php echo e(old('status_kirim') == 'Tiba Ditujuan' ? 'selected' : ''); ?>>Tiba Ditujuan</option>
                 </select>
                 <?php $__errorArgs = ['status_kirim'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -136,20 +91,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </div>
             
-            <div class="mb-4">
-                <label class="form-label fw-bold">Bukti Foto (Opsional)</label>
-                <input type="file" name="bukti_foto" class="form-control" accept="image/*">
-                <?php $__errorArgs = ['bukti_foto'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
+            
             
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary px-4">

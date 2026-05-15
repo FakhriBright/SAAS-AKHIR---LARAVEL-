@@ -4,94 +4,101 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\Pelanggan;
 
 class AuthController extends Controller
 {
-    /**
-     * Show login form
-     */
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /**
-     * Process login
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        // Cek login sebagai Admin (guard: web)
+        Log::info('=== LOGIN ATTEMPT ===', ['email' => $request->email]);
+
+        // 1. Coba login sebagai User (Admin/Owner/Kurir) via guard 'web'
         if (Auth::guard('web')->attempt($credentials)) {
-            $request->session()->regenerate();
+            Log::info('Guard WEB login success', ['user_id' => Auth::guard('web')->id()]);
             
-            // Redirect ke admin dashboard
-            return redirect()->intended('/dashboard');
+            $request->session()->regenerate();
+            $user = Auth::guard('web')->user();
+            
+            Log::info('User role detected: ' . $user->role);
+
+            // ✅ REDIRECT BASED ON ROLE (SESUAI ROUTE NAMES TERBARU)
+            if ($user->role === 'admin') {
+                // ✅ Admin → route 'dashboard' (tanpa prefix)
+                return redirect()->route('dashboard');
+            } elseif ($user->role === 'owner') {
+                // ✅ Owner → route 'owner.dashboard' (punya prefix sendiri)
+                return redirect()->route('owner.dashboard');
+            } elseif ($user->role === 'kurir') {
+                // ✅ Kurir → route 'kurir.pengirimans.index' (punya prefix sendiri)
+                return redirect()->route('kurir.pengirimans.index');
+            }
+
+            // Fallback kalau role aneh
+            Log::error('Unknown role: ' . ($user->role ?? 'NULL'));
+            Auth::guard('web')->logout();
+            return back()->withErrors(['email' => 'Role user tidak valid: ' . ($user->role ?? 'NULL')]);
         }
 
-        // Cek login sebagai Pelanggan (guard: pelanggan)
+        // 2. Coba login sebagai Pelanggan via guard 'pelanggan'
         if (Auth::guard('pelanggan')->attempt($credentials)) {
-            $request->session()->regenerate();
+            Log::info('Guard PELANGGAN login success', ['id' => Auth::guard('pelanggan')->id()]);
             
-            // Redirect ke customer dashboard
-            return redirect()->intended('/customer/dashboard');
+            $request->session()->regenerate();
+            return redirect()->route('customer.dashboard');
         }
 
-        // Jika gagal login
+        // 3. Login GAGAL
+        Log::warning('Login FAILED for email: ' . $request->email);
         return back()->withErrors([
-            'email' => 'Email atau password salah.',
+            'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
     }
 
-    /**
-     * Show register form
-     */
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    /**
-     * Process register (as Pelanggan)
-     */
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'nama_pelanggan' => 'required|string|max:255',
-            'email' => 'required|email|unique:pelanggans,email',
-            'telepon' => 'required|string',
-            'alamat1' => 'required|string',
-            'password' => 'required|min:6|confirmed'
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:admin,owner,kurir',
         ]);
 
-        // Buat akun pelanggan baru
-        Pelanggan::create([
-            'nama_pelanggan' => $validated['nama_pelanggan'],
+        $user = User::create([
+            'name' => $validated['name'],
             'email' => $validated['email'],
-            'telepon' => $validated['telepon'],
-            'alamat1' => $validated['alamat1'],
-            'alamat2' => $validated['alamat2'] ?? null,
-            'alamat3' => $validated['alamat3'] ?? null,
-            'password' => bcrypt($validated['password']),
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
         ]);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
+        return redirect()->route('login')->with('success', 'Akun berhasil dibuat! Silakan login.');
     }
 
-    /**
-     * Logout
-     */
     public function logout(Request $request)
     {
-        // Logout dari semua guard
-        Auth::guard('web')->logout();
-        Auth::guard('pelanggan')->logout();
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
+        if (Auth::guard('pelanggan')->check()) {
+            Auth::guard('pelanggan')->logout();
+        }
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();

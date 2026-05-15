@@ -49,24 +49,97 @@
                 <i class="bi bi-cup-hot-fill text-success"></i> Fakhri Kitchen
             </h4>
         </div>
+        
         <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('pakets.*') ? 'active' : '' }}" href="{{ route('pakets.index') }}"><i class="bi bi-box-seam-fill"></i> Kelola Paket</a></li>
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('pelanggans.*') ? 'active' : '' }}" href="{{ route('pelanggans.index') }}"><i class="bi bi-people-fill"></i> Data Pelanggan</a></li>
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('pemesanans.*') ? 'active' : '' }}" href="{{ route('pemesanans.index') }}"><i class="bi bi-cart-check-fill"></i> Pemesanan</a></li>
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('pengirimans.*') ? 'active' : '' }}" href="{{ route('pengirimans.index') }}"><i class="bi bi-truck-front-fill"></i> Pengiriman</a></li>
+            @php $role = auth()->user()->role ?? ''; @endphp
+
+            {{-- ✅ ADMIN: AKSES SEMUA --}}
+            @if($role === 'admin')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('pakets.*') ? 'active' : '' }}" href="{{ route('pakets.index') }}">
+                        <i class="bi bi-box-seam-fill"></i> Kelola Paket
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('pelanggans.*') ? 'active' : '' }}" href="{{ route('pelanggans.index') }}">
+                        <i class="bi bi-people-fill"></i> Data Pelanggan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('pemesanans.*') ? 'active' : '' }}" href="{{ route('pemesanans.index') }}">
+                        <i class="bi bi-cart-check-fill"></i> Pemesanan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('pengirimans.*') ? 'active' : '' }}" href="{{ route('pengirimans.index') }}">
+                        <i class="bi bi-truck-front-fill"></i> Pengiriman
+                    </a>
+                </li>
+                <li class="nav-item">
+<a class="nav-link d-flex justify-content-between align-items-center
+    {{ request()->routeIs('jenis-pembayaran.*') || request()->routeIs('detail-jenis-pembayaran.*') ? 'active' : '' }}"
+    data-bs-toggle="collapse"
+    href="#paymentMenu">
+
+    <span class="d-flex align-items-center gap-2 text-nowrap">
+        <i class="bi bi-credit-card-2-front"></i>
+        Pembayaran
+    </span>
+
+    <i class="bi bi-chevron-down small"></i>
+</a>
+
+    <div class="collapse {{ request()->routeIs('jenis-pembayaran.*') || request()->routeIs('detail-jenis-pembayaran.*') ? 'show' : '' }}"
+        id="paymentMenu">
+        
+        <ul class="nav flex-column ms-3 mt-2">
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('jenis-pembayaran.*') ? 'active' : '' }}" href="{{ route('jenis-pembayaran.index') }}">
-                    <i class="bi bi-credit-card-2-front"></i> Metode Pembayaran
+                <a class="nav-link {{ request()->routeIs('jenis-pembayaran.*') ? 'active' : '' }}"
+                    href="{{ route('jenis-pembayaran.index') }}">
+                    <i class="bi bi-wallet2"></i> Jenis Pembayaran
                 </a>
             </li>
+
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('detail-jenis-pembayaran.*') ? 'active' : '' }}" href="{{ route('detail-jenis-pembayaran.index') }}">
+                <a class="nav-link {{ request()->routeIs('detail-jenis-pembayaran.*') ? 'active' : '' }}"
+                    href="{{ route('detail-jenis-pembayaran.index') }}">
                     <i class="bi bi-receipt"></i> Detail Pembayaran
                 </a>
             </li>
-            {{-- ✅ AKHIR MENU BARU --}}
         </ul>
+    </div>
+</li>
+            @endif
+
+            {{-- ✅ OWNER: CUMA DASHBOARD + LAPORAN --}}
+            @if($role === 'owner')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('owner.dashboard') ? 'active' : '' }}" href="{{ route('owner.dashboard') }}">
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ownerReportModal">
+                        <i class="bi bi-file-earmark-pdf"></i> Laporan Bulanan
+                    </a>
+                </li>
+            @endif
+
+            {{-- ✅ KURIR: CUMA PENGIRIMAN (KONFIRMASI) --}}
+            @if($role === 'kurir')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('kurir.pengirimans.*') ? 'active' : '' }}" href="{{ route('kurir.pengirimans.index') }}">
+                        <i class="bi bi-truck-front-fill"></i> Konfirmasi Pengiriman
+                    </a>
+                </li>
+            @endif
+        </ul>
+
         <div class="mt-auto pt-4">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
@@ -81,7 +154,12 @@
         <div class="top-bar">
             <div>
                 <h6 class="mb-0 fw-bold text-dark">Welcome back, {{ Auth::user()->name }}!</h6>
-                <small class="text-muted">Admin Catering</small>
+                <small class="text-muted">
+                    @if($role === 'admin') Admin Catering
+                    @elseif($role === 'owner') Owner
+                    @elseif($role === 'kurir') Kurir Pengiriman
+                    @else Admin Catering @endif
+                </small>
             </div>
             <div class="badge bg-light text-dark p-2 rounded-pill">
                 <i class="bi bi-calendar3 me-1"></i> {{ now()->format('d M Y') }}
@@ -89,6 +167,44 @@
         </div>
         @yield('content')
     </div>
+
+    {{-- ✅ MODAL LAPORAN UNTUK OWNER --}}
+    @if($role === 'owner')
+    <div class="modal fade" id="ownerReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Download Laporan Bulanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('owner.report.download') }}" method="GET">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Bulan</label>
+                            <select name="bulan" class="form-select">
+                                @for($i = 1; $i <= 12; $i++)
+                                <option value="{{ $i }}">{{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Tahun</label>
+                            <select name="tahun" class="form-select">
+                                @for($year = date('Y')-2; $year <= date('Y'); $year++)
+                                <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Download PDF</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')

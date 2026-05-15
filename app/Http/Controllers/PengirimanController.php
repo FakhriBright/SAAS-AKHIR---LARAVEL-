@@ -4,33 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengiriman;
 use App\Models\Pemesanan;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class PengirimanController extends Controller
 {
-    /**
-     * Helper: Ambil list kurir (users dengan role kurir atau semua users)
-     */
-    private function getKurirs()
-    {
-        // Kalau ada tabel 'kursors' pakai itu, kalau nggak pakai users
-        if (Schema::hasTable('kursors')) {
-            return \App\Models\Kurir::all();
-        }
-        // Ambil semua users (admin bisa filter manual siapa kurir)
-        return User::all();
-    }
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // ✅ FIX: Pakai relasi 'user' bukan 'kurir'
-        $pengirimans = Pengiriman::with(['pemesanan.pelanggan', 'user'])->latest()->get();
+        $user = auth()->user();
+        
+        if ($user->role === 'kurir') {
+            $pengirimans = Pengiriman::with(['pemesanan.pelanggan'])
+                ->where('status_kirim', 'Sedang Dikirim')
+                ->latest()
+                ->get();
+        } else {
+            $pengirimans = Pengiriman::with(['pemesanan.pelanggan'])->latest()->get();
+        }
+        
         return view('pengirimans.index', compact('pengirimans'));
     }
 
@@ -39,87 +34,71 @@ class PengirimanController extends Controller
      */
     public function create()
     {
-        $pemesanans = Pemesanan::whereIn('status_pesan', ['Menunggu Kurir', 'Sedang Diproses', 'Menunggu Konfirmasi'])
+        $pemesanans = Pemesanan::whereIn('status_pesan', ['Menunggu Konfirmasi', 'Sedang Diproses', 'Menunggu Kurir'])
             ->with('pelanggan')
             ->get();
-        $kurirs = $this->getKurirs();
         
-        return view('pengirimans.create', compact('pemesanans', 'kurirs'));
+        return view('pengirimans.create', compact('pemesanans'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
-{
-    // ✅ DEBUG: Lihat data yang masuk
-    \Log::info('Pengiriman Store Called', $request->all());
-    
-    $validated = $request->validate([
-        'pemesanan_id' => 'required|exists:pemesanans,id',
-        'id_user' => 'required|exists:users,id',
-        'tgl_kirim' => 'required|date',
-        'tgl_tiba' => 'nullable|date|after_or_equal:tgl_kirim',
-        'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan',
-        'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-    ], [
-        // ✅ Custom error messages
-        'pemesanan_id.required' => 'Pesanan harus dipilih',
-        'id_user.required' => 'Kurir harus dipilih',
-        'tgl_kirim.required' => 'Tanggal kirim harus diisi',
-        'status_kirim.required' => 'Status pengiriman harus dipilih',
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'pemesanan_id' => 'required|exists:pemesanans,id|unique:pengirimans,pemesanan_id',
+            'tgl_kirim' => 'required|date',
+            'tgl_tiba' => 'nullable|date|after_or_equal:tgl_kirim',
+            'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim',
+        ]);
 
-    DB::beginTransaction();
-    try {
-        // Handle upload bukti foto
-        if ($request->hasFile('bukti_foto')) {
-            $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
+        DB::beginTransaction();
+        try {
+            $pengiriman = Pengiriman::create([
+                'pemesanan_id' => $validated['pemesanan_id'],
+                'id_user' => null,
+                'tgl_kirim' => $validated['tgl_kirim'],
+                'tgl_tiba' => $validated['tgl_tiba'] ?? null,
+                'status_kirim' => $validated['status_kirim'],
+            ]);
+
+            $pemesanan = Pemesanan::findOrFail($validated['pemesanan_id']);
+            $pemesanan->update(['status_pesan' => 'Sedang Diproses']);
+
+            DB::commit();
+            return redirect()->route('pengirimans.index')
+                ->with('success', '✅ Data pengiriman berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
         }
-
-        $pengiriman = Pengiriman::create([
-            'pemesanan_id' => $validated['pemesanan_id'],
-            'id_user' => $validated['id_user'],
-            'tgl_kirim' => $validated['tgl_kirim'],
-            'tgl_tiba' => $validated['tgl_tiba'] ?? null,
-            'status_kirim' => $validated['status_kirim'],
-            'bukti_foto' => $validated['bukti_foto'] ?? null,
-        ]);
-
-        // Update status pesanan
-        $pemesanan = Pemesanan::findOrFail($validated['pemesanan_id']);
-        $pemesanan->update([
-            'status_pesan' => $validated['status_kirim'] === 'Tiba Ditujuan' ? 'Selesai' : 'Sedang Dikirim'
-        ]);
-
-        DB::commit();
-        return redirect()->route('pengirimans.index')
-            ->with('success', '✅ Data pengiriman berhasil ditambahkan.');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Pengiriman Store Failed: ' . $e->getMessage());
-        return back()->withInput()->with('error', '❌ Gagal: ' . $e->getMessage());
     }
-}
 
     /**
      * Display the specified resource.
      */
     public function show(Pengiriman $pengiriman)
     {
-        $pengiriman->load(['pemesanan.pelanggan', 'pemesanan.detailPemesanans.paket', 'user']);
+        $pengiriman->load(['pemesanan.pelanggan', 'pemesanan.detailPemesanans.paket']);
         return view('pengirimans.show', compact('pengiriman'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified resource (ADMIN).
      */
     public function edit(Pengiriman $pengiriman)
     {
         $pemesanans = Pemesanan::with('pelanggan')->get();
-        $kurirs = $this->getKurirs();
-        
-        return view('pengirimans.edit', compact('pengiriman', 'pemesanans', 'kurirs'));
+        return view('pengirimans.edit', compact('pengiriman', 'pemesanans'));
+    }
+
+    /**
+     * Show the form for editing the specified resource (KURIR).
+     */
+    public function editKurir(Pengiriman $pengiriman)
+    {
+        return view('pengirimans.edit-kurir', compact('pengiriman'));
     }
 
     /**
@@ -127,45 +106,56 @@ public function store(Request $request)
      */
     public function update(Request $request, Pengiriman $pengiriman)
     {
+        // KURIR UPDATE (Konfirmasi Selesai)
+        if (auth()->user()->role === 'kurir') {
+            $validated = $request->validate([
+                'status_kirim' => 'required|in:Tiba Ditujuan',
+                'bukti_foto' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ]);
+            
+            DB::beginTransaction();
+            try {
+                if ($request->hasFile('bukti_foto')) {
+                    if ($pengiriman->bukti_foto) {
+                        Storage::disk('public')->delete($pengiriman->bukti_foto);
+                    }
+                    $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
+                }
+                
+                $pengiriman->update([
+                    'id_user' => auth()->id(),
+                    'status_kirim' => 'Tiba Ditujuan',
+                    'bukti_foto' => $validated['bukti_foto'] ?? $pengiriman->bukti_foto,
+                    'tgl_tiba' => now(),
+                ]);
+                
+                $pengiriman->pemesanan->update(['status_pesan' => 'Selesai']);
+                
+                DB::commit();
+                return redirect()->route('kurir.pengirimans.index')
+                    ->with('success', '✅ Pengiriman berhasil diselesaikan!');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->with('error', '❌ Gagal: ' . $e->getMessage());
+            }
+        }
+        
+        // ADMIN UPDATE
         $validated = $request->validate([
-            'pemesanan_id' => 'required|exists:pemesanans,id',
-            'id_user' => 'required|exists:users,id',
+            'pemesanan_id' => 'required|exists:pemesanans,id|unique:pengirimans,pemesanan_id,' . $pengiriman->id,
             'tgl_kirim' => 'required|date',
             'tgl_tiba' => 'nullable|date|after_or_equal:tgl_kirim',
-            'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim,Tiba Ditujuan',
-            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'status_kirim' => 'required|in:Menunggu Kurir,Sedang Dikirim',
         ]);
 
         DB::beginTransaction();
         try {
-            // Handle upload bukti foto
-            if ($request->hasFile('bukti_foto')) {
-                if ($pengiriman->bukti_foto) {
-                    \Storage::disk('public')->delete($pengiriman->bukti_foto);
-                }
-                $validated['bukti_foto'] = $request->file('bukti_foto')->store('bukti_pengiriman', 'public');
-            }
-
             $pengiriman->update([
                 'pemesanan_id' => $validated['pemesanan_id'],
-                'id_user' => $validated['id_user'],
                 'tgl_kirim' => $validated['tgl_kirim'],
                 'tgl_tiba' => $validated['tgl_tiba'] ?? null,
                 'status_kirim' => $validated['status_kirim'],
-                'bukti_foto' => $validated['bukti_foto'] ?? $pengiriman->bukti_foto,
             ]);
-
-            // Sinkronisasi status pesanan
-            $pemesanan = Pemesanan::find($validated['pemesanan_id']);
-            if ($pemesanan) {
-                $newOrderStatus = match($validated['status_kirim']) {
-                    'Menunggu Kurir' => 'Menunggu Kurir',
-                    'Sedang Dikirim' => 'Sedang Dikirim',
-                    'Tiba Ditujuan' => 'Selesai',
-                    default => $pemesanan->status_pesan
-                };
-                $pemesanan->update(['status_pesan' => $newOrderStatus]);
-            }
 
             DB::commit();
             return redirect()->route('pengirimans.index')
@@ -183,7 +173,7 @@ public function store(Request $request)
     {
         try {
             if ($pengiriman->bukti_foto) {
-                \Storage::disk('public')->delete($pengiriman->bukti_foto);
+                Storage::disk('public')->delete($pengiriman->bukti_foto);
             }
             $pengiriman->delete();
             return redirect()->route('pengirimans.index')

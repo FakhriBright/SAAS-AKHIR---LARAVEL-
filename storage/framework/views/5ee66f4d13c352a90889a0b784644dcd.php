@@ -40,11 +40,7 @@
         font-size: 1.1rem;
     }
     
-    .content-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
-    }
+    .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
     
     .card {
         background: white;
@@ -63,23 +59,11 @@
         gap: 8px;
     }
     
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    .info-item h4 {
-        margin: 0 0 4px;
-        font-size: 0.85rem;
-        color: #666;
-        font-weight: 500;
-    }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .info-item h4 { margin: 0 0 4px; font-size: 0.85rem; color: #666; font-weight: 500; }
     .info-item p { margin: 0; font-weight: 600; color: #333; }
     
-    .order-items-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+    .order-items-table { width: 100%; border-collapse: collapse; }
     .order-items-table th {
         text-align: left;
         padding: 12px;
@@ -117,11 +101,7 @@
         color: #2d6a4f;
     }
     
-    .action-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+    .action-buttons { display: flex; flex-direction: column; gap: 12px; }
     .btn-action {
         width: 100%;
         padding: 14px;
@@ -136,22 +116,67 @@
         gap: 8px;
         text-decoration: none;
     }
-    .btn-primary {
+    .btn-primary { background: #2d6a4f; color: white; }
+    .btn-primary:hover { background: #1b4332; transform: translateY(-2px); }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #b02a37; transform: translateY(-2px); }
+    .btn-outline { background: white; color: #2d6a4f; border: 2px solid #2d6a4f; }
+    .btn-outline:hover { background: #f8f9fa; }
+    
+    /* ✅ PAYMENT DETAILS CARD */
+    .payment-info-card {
+        border: 2px solid #2d6a4f;
+        background: linear-gradient(135deg, #f0f7f4 0%, #ffffff 100%);
+    }
+    .payment-info-card .card-title { color: #2d6a4f; }
+    
+    .payment-account-item {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .payment-account-item:last-child { margin-bottom: 0; }
+    
+    .account-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+    }
+    .account-label { color: #666; font-size: 0.9rem; }
+    .account-value { font-weight: 600; color: #333; }
+    .account-value.rekening {
         background: #2d6a4f;
         color: white;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
     }
-    .btn-primary:hover { background: #1b4332; transform: translateY(-2px); }
-    .btn-danger {
-        background: #dc3545;
+    
+    .cod-info {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #2d6a4f, #1b4332);
+        border-radius: 12px;
         color: white;
     }
-    .btn-danger:hover { background: #b02a37; transform: translateY(-2px); }
-    .btn-outline {
-        background: white;
-        color: #2d6a4f;
-        border: 2px solid #2d6a4f;
+    .cod-info i { font-size: 2rem; margin-bottom: 12px; }
+    .cod-info .cod-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .cod-info small { opacity: 0.9; }
+    
+    .payment-note {
+        margin-top: 16px;
+        padding: 12px;
+        background: #fff3cd;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
     }
-    .btn-outline:hover { background: #f8f9fa; }
+    .payment-note small { color: #856404; }
     
     @media (max-width: 992px) {
         .content-grid { grid-template-columns: 1fr; }
@@ -209,6 +234,63 @@
                     </div>
                 </div>
             </div>
+
+            
+            <?php if(isset($paymentDetails) && $paymentDetails->count() > 0): ?>
+            <div class="card payment-info-card">
+                <div class="card-title">
+                    <i class="bi bi-credit-card"></i> Informasi Pembayaran
+                </div>
+                <p style="margin-bottom: 16px; color: #666;">
+                    Silakan transfer sesuai nominal total pesanan ke rekening berikut:
+                </p>
+                
+                <?php $__currentLoopData = $paymentDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $isCOD = $detail->nomor_rekening && 
+                        (str_contains(strtolower($detail->nomor_rekening), 'bayar') || 
+                         str_contains(strtolower($detail->nomor_rekening), 'tempat') ||
+                         ($detail->nama_pemilik && str_contains(strtolower($detail->nama_pemilik), 'tempat')));
+                ?>
+                
+                <?php if($isCOD): ?>
+                <div class="payment-account-item">
+                    <div class="cod-info">
+                        <i class="bi bi-cash-coin"></i>
+                        <div class="cod-text"><?php echo e($detail->nomor_rekening); ?></div>
+                        <small><?php echo e($detail->nama_pemilik ?? 'Silakan siapkan uang pas saat kurir tiba'); ?></small>
+                    </div>
+                </div>
+                <?php else: ?>
+                <div class="payment-account-item">
+                    <div class="account-row">
+                        <span class="account-label">👤 Atas Nama</span>
+                        <span class="account-value"><?php echo e($detail->nama_pemilik ?? '-'); ?></span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">🔢 No. Rekening</span>
+                        <span class="account-value rekening"><?php echo e($detail->nomor_rekening); ?></span>
+                    </div>
+                    <?php if($detail->bank): ?>
+                    <div class="account-row">
+                        <span class="account-label">🏦 Bank</span>
+                        <span class="account-value"><?php echo e($detail->bank); ?></span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                <div class="payment-note">
+                    <small>
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>Penting:</strong> Transfer sesuai total pesanan: 
+                        <strong>Rp <?php echo e(number_format($order->total_bayar, 0, ',', '.')); ?></strong>. 
+                        Simpan bukti transfer Anda.
+                    </small>
+                </div>
+            </div>
+            <?php endif; ?>
 
             
             <div class="card">

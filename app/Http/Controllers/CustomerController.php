@@ -7,10 +7,12 @@ use App\Models\Paket;
 use App\Models\Cart;
 use App\Models\JenisPembayaran;
 use App\Models\DetailPemesanan;
+use App\Models\DetailJenisPembayaran; // ✅ TAMBAHKAN INI
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
@@ -76,7 +78,11 @@ class CustomerController extends Controller
             ->where('id_pelanggan', $pelanggan->id)
             ->with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
             ->firstOrFail();
-        return view('customer.order-detail', compact('order'));
+        
+        // ✅ AMBIL DETAIL PEMBAYARAN UNTUK METODE YANG DIPILIH
+        $paymentDetails = DetailJenisPembayaran::where('id_jenis_pembayaran', $order->id_jenis_bayar)->get();
+        
+        return view('customer.order-detail', compact('order', 'paymentDetails'));
     }
 
     /**
@@ -100,27 +106,36 @@ class CustomerController extends Controller
     /**
      * Show Checkout Page
      */
-    public function checkout()
-    {
-        $pelanggan = auth()->guard('pelanggan')->user();
-        
-        $carts = Cart::where('id_pelanggan', $pelanggan->id)
-            ->with('paket')
-            ->get();
-        
-        if ($carts->isEmpty()) {
-            return redirect()->route('customer.cart.index')
-                ->with('error', 'Keranjang belanja kosong.');
-        }
-        
-        $total = $carts->sum(function($cart) {
-            return $cart->subtotal ?? ($cart->jumlah * $cart->paket->harga_paket);
-        });
-        
-        $jenisPembayarans = JenisPembayaran::all();
-        
-        return view('customer.checkout', compact('carts', 'total', 'jenisPembayarans'));
+/**
+ * Show Checkout Page
+ */
+public function checkout()
+{
+    $pelanggan = auth()->guard('pelanggan')->user();
+    
+    $carts = Cart::where('id_pelanggan', $pelanggan->id)
+        ->with('paket')
+        ->get();
+    
+    if ($carts->isEmpty()) {
+        return redirect()->route('customer.cart.index')
+            ->with('error', 'Keranjang belanja kosong.');
     }
+    
+    $total = $carts->sum(function($cart) {
+        return $cart->subtotal ?? ($cart->jumlah * $cart->paket->harga_paket);
+    });
+    
+    $jenisPembayarans = JenisPembayaran::all();
+    
+    // ✅ Ambil semua detail pembayaran & group by id_jenis_pembayaran
+    $paymentDetails = DetailJenisPembayaran::all()->groupBy('id_jenis_pembayaran');
+    
+    // Debug: Lihat struktur data
+    // \Log::info('Payment Details:', $paymentDetails->toArray());
+    
+    return view('customer.checkout', compact('carts', 'total', 'jenisPembayarans', 'paymentDetails'));
+}
 
     /**
      * Process Order (Store)
