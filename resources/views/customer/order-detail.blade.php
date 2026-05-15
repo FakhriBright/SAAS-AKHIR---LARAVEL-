@@ -234,62 +234,93 @@
                 </div>
             </div>
 
-            {{-- ✅ INFORMASI PEMBAYARAN --}}
-            @if(isset($paymentDetails) && $paymentDetails->count() > 0)
-            <div class="card payment-info-card">
-                <div class="card-title">
-                    <i class="bi bi-credit-card"></i> Informasi Pembayaran
+{{-- ✅ INFORMASI PEMBAYARAN --}}
+@if(isset($paymentDetails) && $paymentDetails->count() > 0)
+{{-- ✅ INFORMASI PEMBAYARAN - FULL FIX --}}
+<div class="card payment-info-card">
+    <div class="card-title">
+        <i class="bi bi-credit-card"></i> Informasi Pembayaran
+    </div>
+    
+    @php
+        // Ambil payment details
+        $details = $paymentDetails ?? collect();
+        $metodePembayaran = $order->jenisPembayaran->metode_pembayaran ?? '';
+        
+        // Cek apakah COD
+        $isCOD = str_contains(strtolower($metodePembayaran), 'cod') || 
+                 str_contains(strtolower($metodePembayaran), 'bayar di tempat');
+    @endphp
+    
+    @if($isCOD)
+        {{-- ✅ COD PAYMENT INFO --}}
+        <div class="payment-account-item">
+            <div class="cod-info">
+                <i class="bi bi-cash-coin" style="font-size: 3rem;"></i>
+                <div class="cod-text" style="font-size: 1.5rem; margin: 12px 0;">
+                    💵 Bayar di Tempat
                 </div>
-                <p style="margin-bottom: 16px; color: #666;">
-                    Silakan transfer sesuai nominal total pesanan ke rekening berikut:
-                </p>
-                
-                @foreach($paymentDetails as $detail)
-                @php
-                    $isCOD = $detail->nomor_rekening && 
-                        (str_contains(strtolower($detail->nomor_rekening), 'bayar') || 
-                         str_contains(strtolower($detail->nomor_rekening), 'tempat') ||
-                         ($detail->nama_pemilik && str_contains(strtolower($detail->nama_pemilik), 'tempat')));
-                @endphp
-                
-                @if($isCOD)
-                <div class="payment-account-item">
-                    <div class="cod-info">
-                        <i class="bi bi-cash-coin"></i>
-                        <div class="cod-text">{{ $detail->nomor_rekening }}</div>
-                        <small>{{ $detail->nama_pemilik ?? 'Silakan siapkan uang pas saat kurir tiba' }}</small>
-                    </div>
-                </div>
-                @else
-                <div class="payment-account-item">
-                    <div class="account-row">
-                        <span class="account-label">👤 Atas Nama</span>
-                        <span class="account-value">{{ $detail->nama_pemilik ?? '-' }}</span>
-                    </div>
-                    <div class="account-row">
-                        <span class="account-label">🔢 No. Rekening</span>
-                        <span class="account-value rekening">{{ $detail->nomor_rekening }}</span>
-                    </div>
-                    @if($detail->bank)
-                    <div class="account-row">
-                        <span class="account-label">🏦 Bank</span>
-                        <span class="account-value">{{ $detail->bank }}</span>
-                    </div>
-                    @endif
-                </div>
-                @endif
-                @endforeach
-
-                <div class="payment-note">
-                    <small>
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        <strong>Penting:</strong> Transfer sesuai total pesanan: 
-                        <strong>Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</strong>. 
-                        Simpan bukti transfer Anda.
-                    </small>
-                </div>
+                <small style="opacity: 0.9;">
+                    Silakan siapkan uang tunai sesuai total pesanan saat kurir tiba
+                </small>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0" style="background: #e7f3ff; border-color: #0d6efd;">
+            <strong>📌 Cara Pembayaran COD:</strong>
+            <ol class="mb-0 mt-2" style="padding-left: 20px;">
+                <li>Tunggu kurir datang ke alamat Anda</li>
+                <li>Periksa pesanan Anda</li>
+                <li>Bayar sesuai total: <strong>Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</strong></li>
+                <li>Terima bukti pembayaran dari kurir</li>
+            </ol>
+        </div>
+    
+    @elseif($details->count() > 0)
+        {{-- ✅ TRANSFER PAYMENT INFO --}}
+        <p style="margin-bottom: 16px; color: #666;">
+            Silakan transfer sesuai nominal total pesanan ke rekening berikut:
+        </p>
+        
+        @foreach($details as $detail)
+        <div class="payment-account-item">
+            <div class="account-row">
+                <span class="account-label">👤 Atas Nama</span>
+                <span class="account-value">{{ $detail->tempat_bayar ?? $detail->nama_pemilik ?? '-' }}</span>
+            </div>
+            <div class="account-row">
+                <span class="account-label">🔢 No. Rekening</span>
+                <span class="account-value rekening">{{ $detail->no_rek ?? $detail->nomor_rekening ?? '-' }}</span>
+            </div>
+            @if($detail->bank)
+            <div class="account-row">
+                <span class="account-label">🏦 Bank</span>
+                <span class="account-value">{{ $detail->bank }}</span>
             </div>
             @endif
+        </div>
+        @endforeach
+
+        <div class="payment-note">
+            <small>
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <strong>Penting:</strong> Transfer sesuai total pesanan: 
+                <strong>Rp {{ number_format($order->total_bayar, 0, ',', '.') }}</strong>. 
+                Simpan bukti transfer Anda.
+            </small>
+        </div>
+    
+    @else
+        {{-- ✅ FALLBACK: No payment details available --}}
+        <div class="alert alert-warning mb-0">
+            <strong>⚠️ Informasi Pembayaran Belum Tersedia</strong>
+            <p class="mb-0 mt-2">
+                Silakan hubungi admin untuk informasi lebih lanjut.
+            </p>
+        </div>
+    @endif
+</div>
+@endif
 
             {{-- Order Items --}}
             <div class="card">

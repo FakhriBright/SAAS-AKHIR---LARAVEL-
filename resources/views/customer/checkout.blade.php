@@ -372,78 +372,59 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ✅ FIX: Ambil data payment details dengan benar
     const paymentDetailsData = @json($paymentDetails ?? []);
-    
-    console.log('Payment Details Data:', paymentDetailsData); // Debug log
-    
     const paymentMethods = document.querySelectorAll('.payment-method');
     const paymentDetailsBox = document.getElementById('payment-details-box');
     const paymentDetailsContent = document.getElementById('payment-details-content');
     
     function showPaymentDetails(methodId) {
-        // ✅ FIX: Akses data dengan benar (key adalah string, bukan number)
         const details = paymentDetailsData[String(methodId)] || paymentDetailsData[methodId] || [];
+        const detailsArray = Array.isArray(details) ? details : [details];
         
-        console.log('Method ID:', methodId, 'Details:', details); // Debug log
-        
-        if (!details || details.length === 0) {
+        if (!detailsArray.length || (detailsArray.length === 1 && !detailsArray[0].no_rek && !detailsArray[0].nomor_rekening)) {
             paymentDetailsBox.classList.remove('show');
             return;
         }
         
         let html = '';
         
-        // Pastikan details adalah array
-        const detailsArray = Array.isArray(details) ? details : [details];
-        
         detailsArray.forEach(function(detail) {
-            // Cek apakah COD / Bayar di Tempat
-            const nomorRek = detail.nomor_rekening || detail.nomor_rek || '';
-            const namaPemilik = detail.nama_pemilik || detail.atas_nama || '';
+            const noRek = detail.no_rek || detail.nomor_rekening || '';
+            const namaPemilik = detail.tempat_bayar || detail.nama_pemilik || '';
             const bank = detail.bank || '';
             
-            const isCOD = nomorRek && 
-                (nomorRek.toLowerCase().includes('bayar') || 
-                 nomorRek.toLowerCase().includes('tempat') ||
-                 (namaPemilik && namaPemilik.toLowerCase().includes('tempat')));
+            // Cek apakah COD
+            const isCOD = noRek && (noRek.toLowerCase().includes('bayar') || noRek.toLowerCase().includes('tempat'));
             
             if (isCOD) {
                 html += `
-                    <div class="payment-detail-item">
-                        <div style="text-align: center;">
-                            <div class="cod-badge">
-                                <i class="bi bi-cash-coin"></i>
-                                ${nomorRek}
+                    <div class="payment-detail-item" style="text-align: center; padding: 20px;">
+                        <div style="background: linear-gradient(135deg, #2d6a4f, #1b4332); color: white; padding: 16px; border-radius: 12px;">
+                            <i class="bi bi-cash-coin" style="font-size: 2.5rem;"></i>
+                            <div style="font-size: 1.3rem; font-weight: 700; margin: 12px 0;">
+                                💵 ${noRek}
                             </div>
-                            <p style="margin: 12px 0 0; color: #666; font-size: 0.9rem;">
-                                ${namaPemilik || 'Silakan siapkan uang pas saat kurir tiba'}
-                            </p>
+                            <small style="opacity: 0.9;">${namaPemilik || 'Siapkan uang pas saat kurir tiba'}</small>
                         </div>
                     </div>
                 `;
             } else {
                 html += `
-                    <div class="payment-detail-item">
-                        <div class="detail-row">
-                            <span class="detail-label">👤 Atas Nama</span>
-                            <span class="detail-value">${namaPemilik || '-'}</span>
+                    <div class="payment-detail-item" style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0;">
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0;">
+                            <span style="color: #666;">👤 Atas Nama</span>
+                            <span style="font-weight: 600;">${namaPemilik || '-'}</span>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">🔢 No. Rekening</span>
-                            <span class="detail-value rekening">${nomorRek}</span>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0;">
+                            <span style="color: #666;">🔢 No. Rekening</span>
+                            <span style="background: #2d6a4f; color: white; padding: 4px 12px; border-radius: 6px; font-family: monospace; font-size: 1.05rem;">${noRek}</span>
                         </div>
-                        ${bank ? `
-                        <div class="detail-row">
-                            <span class="detail-label">🏦 Bank</span>
-                            <span class="detail-value">${bank}</span>
-                        </div>` : ''}
+                        ${bank ? `<div style="display: flex; justify-content: space-between; padding: 6px 0;"><span style="color: #666;">🏦 Bank</span><span style="font-weight: 600;">${bank}</span></div>` : ''}
                     </div>
                 `;
             }
         });
         
-        // Tambah note penting
         html += `
             <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
                 <small style="color: #856404;">
@@ -457,26 +438,22 @@ document.addEventListener('DOMContentLoaded', function() {
         paymentDetailsBox.classList.add('show');
     }
     
-    // Event listener untuk radio buttons
+    // Event listeners
     paymentMethods.forEach(method => {
         method.addEventListener('click', function() {
-            // Update active state
             paymentMethods.forEach(m => m.classList.remove('active'));
             this.classList.add('active');
             
-            // Get method ID dan tampilkan detail
             const radioInput = this.querySelector('input[type="radio"]');
             const methodId = radioInput.value;
             showPaymentDetails(methodId);
         });
     });
     
-    // Trigger on load untuk method yang sudah selected
+    // Trigger on load
     const selectedMethod = document.querySelector('.payment-method input[type="radio"]:checked');
     if (selectedMethod) {
-        const methodElement = selectedMethod.closest('.payment-method');
         const methodId = selectedMethod.value;
-        // Delay sedikit biar DOM ready
         setTimeout(() => showPaymentDetails(methodId), 100);
     }
 });

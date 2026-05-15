@@ -72,25 +72,41 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,owner,kurir',
-        ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
+ public function register(Request $request)
+{
+    // ✅ VALIDASI SESUAI NAMA FIELD DI FORM
+    $validated = $request->validate([
+        'nama_pelanggan' => 'required|string|max:255',  // ✅ Pakai nama_pelanggan
+        'email' => 'required|string|email|max:255|unique:pelanggans,email',
+        'telepon' => 'required|string',
+        'alamat1' => 'required|string',
+        'alamat2' => 'nullable|string',
+        'alamat3' => 'nullable|string',
+        'password' => 'required|string|min:8|confirmed',
+        // ✅ JANGAN VALIDASI 'role' untuk registrasi pelanggan
+    ]);
+    
+    try {
+        // ✅ BUAT PELANGGAN BARU DENGAN ROLE OTOMATIS
+        $pelanggan = \App\Models\Pelanggan::create([
+            'nama_pelanggan' => $validated['nama_pelanggan'],
             'email' => $validated['email'],
+            'telepon' => $validated['telepon'],
+            'alamat1' => $validated['alamat1'],
+            'alamat2' => $validated['alamat2'] ?? null,
+            'alamat3' => $validated['alamat3'] ?? null,
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
+            // Role pelanggan biasanya otomatis atau ada di tabel users terpisah
         ]);
-
-        return redirect()->route('login')->with('success', 'Akun berhasil dibuat! Silakan login.');
+        
+        return redirect()->route('login')
+            ->with('success', '✅ Registrasi berhasil! Silakan login dengan akun Anda.');
+            
+    } catch (\Exception $e) {
+        return back()->withInput()
+            ->with('error', '❌ Gagal registrasi: ' . $e->getMessage());
     }
-
+}
     public function logout(Request $request)
     {
         if (Auth::guard('web')->check()) {

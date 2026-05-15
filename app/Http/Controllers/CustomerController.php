@@ -71,19 +71,29 @@ class CustomerController extends Controller
     /**
      * Show Order Detail
      */
-    public function showOrder($id)
-    {
-        $pelanggan = auth()->guard('pelanggan')->user();
-        $order = Pemesanan::where('id', $id)
-            ->where('id_pelanggan', $pelanggan->id)
-            ->with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
-            ->firstOrFail();
-        
-        // ✅ AMBIL DETAIL PEMBAYARAN UNTUK METODE YANG DIPILIH
-        $paymentDetails = DetailJenisPembayaran::where('id_jenis_pembayaran', $order->id_jenis_bayar)->get();
-        
-        return view('customer.order-detail', compact('order', 'paymentDetails'));
-    }
+ /**
+ * Show Order Detail
+ */
+public function showOrder($id)
+{
+    $pelanggan = auth()->guard('pelanggan')->user();
+    $order = Pemesanan::where('id', $id)
+        ->where('id_pelanggan', $pelanggan->id)
+        ->with(['detailPemesanans.paket', 'jenisPembayaran', 'pengiriman'])
+        ->firstOrFail();
+    
+    // ✅ DEBUG: Lihat id_jenis_bayar yang tersimpan
+    \Log::info('Order Payment Method ID:', ['id_jenis_bayar' => $order->id_jenis_bayar]);
+    
+    // ✅ Ambil detail pembayaran untuk metode yang dipilih
+    $paymentDetails = DetailJenisPembayaran::where('id_jenis_pembayaran', $order->id_jenis_bayar)->get();
+    
+    // ✅ DEBUG: Lihat hasil query
+    \Log::info('Payment Details Count:', ['count' => $paymentDetails->count()]);
+    \Log::info('Payment Details:', $paymentDetails->toArray());
+    
+    return view('customer.order-detail', compact('order', 'paymentDetails'));
+}
 
     /**
      * Cancel Order
