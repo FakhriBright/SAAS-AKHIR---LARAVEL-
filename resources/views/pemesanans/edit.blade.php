@@ -33,7 +33,7 @@
                                 <select name="id_pelanggan" class="form-select @error('id_pelanggan') is-invalid @enderror" required>
                                     <option value="">-- Pilih Pelanggan --</option>
                                     @foreach($pelanggans as $pelanggan)
-                                    <option value="{{ $pelanggan->id }}" 
+                                    <option value="{{ $pelanggan->id }}"
                                         {{ (old('id_pelanggan', $pemesanan->id_pelanggan) == $pelanggan->id) ? 'selected' : '' }}>
                                         {{ $pelanggan->nama_pelanggan }} - {{ $pelanggan->telepon }}
                                     </option>
@@ -49,7 +49,7 @@
                                 <select name="id_jenis_bayar" class="form-select @error('id_jenis_bayar') is-invalid @enderror" required>
                                     <option value="">-- Pilih Metode --</option>
                                     @foreach($jenisPembayarans as $jp)
-                                    <option value="{{ $jp->id }}" 
+                                    <option value="{{ $jp->id }}"
                                         {{ (old('id_jenis_bayar', $pemesanan->id_jenis_bayar) == $jp->id) ? 'selected' : '' }}>
                                         {{ $jp->metode_pembayaran }}
                                     </option>
@@ -61,14 +61,23 @@
                             </div>
                         </div>
 
-                        {{-- Tanggal Pesan --}}
+                        {{-- ✅ FIX: Tanggal Pengiriman yang Diminta (Auto-fill dari Checkout) --}}
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
-                            <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror" 
-                                   value="{{ old('tgl_pesan', $pemesanan->tgl_pesan) }}" required>
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-event me-2"></i>
+                                Tanggal Pengiriman yang Diminta <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="tgl_pesan" class="form-control @error('tgl_pesan') is-invalid @enderror"
+                                   value="{{ old('tgl_pesan', $pemesanan->tgl_pesan ? $pemesanan->tgl_pesan->format('Y-m-d') : date('Y-m-d')) }}"
+                                   required
+                                   readonly>
                             @error('tgl_pesan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Tanggal ini dipilih oleh pelanggan saat checkout. Admin tidak dapat mengubah.
+                            </small>
                         </div>
 
                         {{-- Detail Paket --}}
@@ -83,7 +92,6 @@
                                             <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 @foreach($pakets as $paket)
-                                                {{-- ✅ FIX: PAKAI harga_paket --}}
                                                 <option value="{{ $paket->id }}" data-harga="{{ $paket->harga_paket }}"
                                                     {{ $detail->paket_id == $paket->id ? 'selected' : '' }}>
                                                     {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}
@@ -93,7 +101,7 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">Jumlah</label>
-                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah" 
+                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah"
                                                    min="1" value="{{ old('jumlah.' . $index, $detail->jumlah) }}" required>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
@@ -111,7 +119,6 @@
                                             <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 @foreach($pakets as $paket)
-                                                {{-- ✅ FIX: PAKAI harga_paket --}}
                                                 <option value="{{ $paket->id }}" data-harga="{{ $paket->harga_paket }}">
                                                     {{ $paket->nama_paket }} - Rp {{ number_format($paket->harga_paket, 0, ',', '.') }}
                                                 </option>
@@ -154,7 +161,7 @@
                         {{-- Catatan --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Catatan (Opsional)</label>
-                            <textarea name="catatan" class="form-control @error('catatan') is-invalid @enderror" 
+                            <textarea name="catatan" class="form-control @error('catatan') is-invalid @enderror"
                                       rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi...">{{ old('catatan', $pemesanan->catatan) }}</textarea>
                             @error('catatan')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -224,11 +231,11 @@
             </div>
         `;
         container.appendChild(newItem);
-        
+
         // Populate dropdown yang baru
         const newSelect = newItem.querySelector('.paket-select');
         populatePaketDropdown(newSelect);
-        
+
         updateDeleteButtons();
     }
 
@@ -278,7 +285,7 @@
                 populatePaketDropdown(select);
             }
         });
-        
+
         calculateTotal();
         updateDeleteButtons();
     });

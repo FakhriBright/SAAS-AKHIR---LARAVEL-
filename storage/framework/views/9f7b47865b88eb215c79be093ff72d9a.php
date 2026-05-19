@@ -38,7 +38,7 @@ endif;
 unset($__errorArgs, $__bag); ?>" required>
                                     <option value="">-- Pilih Pelanggan --</option>
                                     <?php $__currentLoopData = $pelanggans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pelanggan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($pelanggan->id); ?>" 
+                                    <option value="<?php echo e($pelanggan->id); ?>"
                                         <?php echo e((old('id_pelanggan', $pemesanan->id_pelanggan) == $pelanggan->id) ? 'selected' : ''); ?>>
                                         <?php echo e($pelanggan->nama_pelanggan); ?> - <?php echo e($pelanggan->telepon); ?>
 
@@ -69,7 +69,7 @@ endif;
 unset($__errorArgs, $__bag); ?>" required>
                                     <option value="">-- Pilih Metode --</option>
                                     <?php $__currentLoopData = $jenisPembayarans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($jp->id); ?>" 
+                                    <option value="<?php echo e($jp->id); ?>"
                                         <?php echo e((old('id_jenis_bayar', $pemesanan->id_jenis_bayar) == $jp->id) ? 'selected' : ''); ?>>
                                         <?php echo e($jp->metode_pembayaran); ?>
 
@@ -91,7 +91,10 @@ unset($__errorArgs, $__bag); ?>
 
                         
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Tanggal Pesan <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-event me-2"></i>
+                                Tanggal Pengiriman yang Diminta <span class="text-danger">*</span>
+                            </label>
                             <input type="date" name="tgl_pesan" class="form-control <?php $__errorArgs = ['tgl_pesan'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -99,8 +102,10 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
-                                   value="<?php echo e(old('tgl_pesan', $pemesanan->tgl_pesan)); ?>" required>
+unset($__errorArgs, $__bag); ?>"
+                                   value="<?php echo e(old('tgl_pesan', $pemesanan->tgl_pesan ? $pemesanan->tgl_pesan->format('Y-m-d') : date('Y-m-d'))); ?>"
+                                   required
+                                   readonly>
                             <?php $__errorArgs = ['tgl_pesan'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -111,6 +116,10 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Tanggal ini dipilih oleh pelanggan saat checkout. Admin tidak dapat mengubah.
+                            </small>
                         </div>
 
                         
@@ -125,7 +134,6 @@ unset($__errorArgs, $__bag); ?>
                                             <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 <?php $__currentLoopData = $pakets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                
                                                 <option value="<?php echo e($paket->id); ?>" data-harga="<?php echo e($paket->harga_paket); ?>"
                                                     <?php echo e($detail->paket_id == $paket->id ? 'selected' : ''); ?>>
                                                     <?php echo e($paket->nama_paket); ?> - Rp <?php echo e(number_format($paket->harga_paket, 0, ',', '.')); ?>
@@ -136,7 +144,7 @@ unset($__errorArgs, $__bag); ?>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">Jumlah</label>
-                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah" 
+                                            <input type="number" name="jumlah[]" class="form-control qty-input" placeholder="Jumlah"
                                                    min="1" value="<?php echo e(old('jumlah.' . $index, $detail->jumlah)); ?>" required>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
@@ -154,7 +162,6 @@ unset($__errorArgs, $__bag); ?>
                                             <select name="paket_id[]" class="form-select paket-select" required>
                                                 <option value="">-- Pilih Paket --</option>
                                                 <?php $__currentLoopData = $pakets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                
                                                 <option value="<?php echo e($paket->id); ?>" data-harga="<?php echo e($paket->harga_paket); ?>">
                                                     <?php echo e($paket->nama_paket); ?> - Rp <?php echo e(number_format($paket->harga_paket, 0, ',', '.')); ?>
 
@@ -219,7 +226,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
+unset($__errorArgs, $__bag); ?>"
                                       rows="3" placeholder="Contoh: Acara ulang tahun, butuh 50 porsi..."><?php echo e(old('catatan', $pemesanan->catatan)); ?></textarea>
                             <?php $__errorArgs = ['catatan'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -296,11 +303,11 @@ unset($__errorArgs, $__bag); ?>
             </div>
         `;
         container.appendChild(newItem);
-        
+
         // Populate dropdown yang baru
         const newSelect = newItem.querySelector('.paket-select');
         populatePaketDropdown(newSelect);
-        
+
         updateDeleteButtons();
     }
 
@@ -350,11 +357,12 @@ unset($__errorArgs, $__bag); ?>
                 populatePaketDropdown(select);
             }
         });
-        
+
         calculateTotal();
         updateDeleteButtons();
     });
 </script>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\saas-akhir\resources\views/pemesanans/edit.blade.php ENDPATH**/ ?>
