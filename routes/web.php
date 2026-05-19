@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 // Controllers - Auth & Public
 use App\Http\Controllers\AuthController;
@@ -31,13 +30,7 @@ Route::get('/menu', fn() => redirect()->route('customer.catalog'))->name('menu')
 Route::get('/galeri', fn() => redirect()->route('home'))->name('gallery');
 Route::get('/testimoni', fn() => redirect()->route('home'))->name('testimoni');
 
-Route::get('/', fn() => view('landing'))->name('home');
-
-// ✅ LOGIN PELANGGAN (CUSTOMER)
-Route::get('/login', [AuthController::class, 'showCustomerLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'loginCustomer'])->name('login.process');
-
-// ✅ SATU ROUTE LOGIN UNTUK SEMUA (Pelanggan & Admin/Owner/Kurir)
+// ✅ SATU ROUTE LOGIN DINAMIS (Pelanggan & Admin/Owner/Kurir)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 
@@ -47,7 +40,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES (FULL ACCESS) - ✅ TANPA PREFIX, PAKAI MIDDLEWARE
+| ADMIN ROUTES (FULL ACCESS)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'check.role:admin'])->group(function () {
@@ -68,17 +61,17 @@ Route::middleware(['auth:web', 'check.role:admin'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| OWNER ROUTES (DASHBOARD ONLY)
+| OWNER ROUTES (DASHBOARD + REPORT)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'check.role:owner'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/download-report', [ReportController::class, 'downloadMonthlyReport'])->name('report.download'); // ✅ TAMBAH INI
+    Route::get('/download-report', [ReportController::class, 'downloadMonthlyReport'])->name('report.download');
 });
 
 /*
 |--------------------------------------------------------------------------
-| KURIR ROUTES (PENGIRIMAN & KONFIRMASI FOTO)
+| KURIR ROUTES (PENGIRIMAN & KONFIRMASI)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'check.role:kurir'])->prefix('kurir')->name('kurir.')->group(function () {

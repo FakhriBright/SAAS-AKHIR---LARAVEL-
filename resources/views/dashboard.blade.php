@@ -13,7 +13,7 @@
         display: flex;
         flex-direction: column;
     }
-    .chart-card h6 { 
+    .chart-card h6 {
         margin-bottom: 20px;
         padding-bottom: 12px;
         border-bottom: 1px solid #f0f2f5;
@@ -23,7 +23,7 @@
         position: relative;
         min-height: 350px;
     }
-    
+
     .top-selling-list {
         display: flex;
         flex-direction: column;
@@ -60,12 +60,12 @@
     .rank-1 { background: #ffd700; color: #fff; box-shadow: 0 2px 8px rgba(255,215,0,0.3); }
     .rank-2 { background: #c0c0c0; color: #fff; }
     .rank-3 { background: #cd7f32; color: #fff; }
-    
+
     .item-info { flex: 1; }
     .item-name { font-weight: 600; font-size: 0.95rem; color: #333; }
     .item-sold { font-size: 0.8rem; color: #888; }
     .item-qty { font-weight: 700; color: #2d6a4f; font-size: 0.95rem; }
-    
+
     .btn-download {
         background: #dc3545;
         color: white;
@@ -160,11 +160,11 @@
 
     {{-- RIGHT: Top 3 Selling & Donut --}}
     <div class="col-xl-4 d-flex flex-column gap-3">
-        
+
         {{-- TOP 3 PAKET TERLARIS --}}
         <div class="card-modern p-3">
             <h6 class="fw-bold mb-3"><i class="bi bi-trophy me-2 text-warning"></i>Top 3 Paket Terlaris</h6>
-            
+
             <div class="top-selling-list">
                 @forelse($topPackages as $index => $item)
                 @if($index < 3)
@@ -211,9 +211,9 @@
                         <i class="bi bi-file-earmark-pdf"></i> Download Laporan
                     </button>
                     {{-- ✅ FIX: Route admin.pemesanans.index --}}
-                    <a href="{{ route('pemesanans.index') }}" class="btn btn-sm btn-primary rounded-pill px-3">
-                        Lihat Semua
-                    </a>
+    <a href="{{ route('pemesanans.index') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-list-ul me-2"></i>Lihat Semua
+    </a>
                 </div>
             </div>
             <div class="table-responsive">
@@ -323,7 +323,7 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(45, 106, 79, 0.5)');
             gradient.addColorStop(1, 'rgba(45, 106, 79, 0.0)');
-            
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -347,7 +347,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: { padding: { top: 10, right: 10, bottom: 0, left: 0 } },
-                    plugins: { 
+                    plugins: {
                         legend: { display: false },
                         tooltip: {
                             mode: 'index',
@@ -361,13 +361,13 @@
                         }
                     },
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
+                        y: {
+                            beginAtZero: true,
                             max: 5,
                             grid: { color: '#f0f2f5', borderDash: [5, 5], drawBorder: false },
                             ticks: { stepSize: 1, font: { size: 11 }, color: '#999', padding: 8 }
                         },
-                        x: { 
+                        x: {
                             grid: { display: false, drawBorder: false },
                             ticks: { maxTicksLimit: 10, font: { size: 11 }, color: '#999', padding: 8 }
                         }

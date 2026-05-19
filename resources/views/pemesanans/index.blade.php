@@ -3,11 +3,15 @@
 @section('title', 'Pemesanan')
 
 @section('content')
-<div class="row mb-4">
-    <div class="col-md-6">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
         <h4 class="fw-bold mb-1">Pemesanan</h4>
         <p class="text-muted mb-0">Kelola semua transaksi pemesanan.</p>
     </div>
+    {{-- ✅ TOMBOL TAMBAH PESANAN (DARURAT) --}}
+    <a href="{{ route('pemesanans.create') }}" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-circle me-2"></i>Tambah Pesanan
+    </a>
 </div>
 
 <div class="card-modern p-4">
@@ -51,6 +55,9 @@
                     <td class="text-end pe-4">
                         <a href="{{ route('pemesanans.show', $order->id) }}" class="btn btn-sm btn-light text-primary">
                             <i class="bi bi-eye me-1"></i> Detail
+                        </a>
+                        <a href="{{ route('pemesanans.edit', $order->id) }}" class="btn btn-sm btn-light text-warning">
+                            <i class="bi bi-pencil me-1"></i> Edit
                         </a>
                     </td>
                 </tr>

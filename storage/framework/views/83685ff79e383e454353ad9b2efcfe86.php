@@ -1,11 +1,15 @@
 <?php $__env->startSection('title', 'Pemesanan'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="row mb-4">
-    <div class="col-md-6">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
         <h4 class="fw-bold mb-1">Pemesanan</h4>
         <p class="text-muted mb-0">Kelola semua transaksi pemesanan.</p>
     </div>
+    
+    <a href="<?php echo e(route('pemesanans.create')); ?>" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-circle me-2"></i>Tambah Pesanan
+    </a>
 </div>
 
 <div class="card-modern p-4">
@@ -51,6 +55,9 @@
                         <a href="<?php echo e(route('pemesanans.show', $order->id)); ?>" class="btn btn-sm btn-light text-primary">
                             <i class="bi bi-eye me-1"></i> Detail
                         </a>
+                        <a href="<?php echo e(route('pemesanans.edit', $order->id)); ?>" class="btn btn-sm btn-light text-warning">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </a>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -61,4 +68,5 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\saas-akhir\resources\views/pemesanans/index.blade.php ENDPATH**/ ?>
